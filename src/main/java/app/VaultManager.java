@@ -1,3 +1,4 @@
+package app;
 import java.io.*;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -25,17 +26,22 @@ public class VaultManager {
         
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
             vault = (Map<String, Credential>) ois.readObject();
-            try {
-                categories = (Map<String, Set<String>>) ois.readObject();
-            } catch (EOFException e) {
-                categories = new HashMap<>();
-            }
+            loadCategories(ois);
         } catch (IOException | ClassNotFoundException e) {
             vault = new HashMap<>();
             categories = new HashMap<>();
         }
     }
 
+    @SuppressWarnings("unchecked")
+    private void loadCategories(ObjectInputStream ois) {
+        try {
+            categories = (Map<String, Set<String>>) ois.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            categories = new HashMap<>();
+        }
+    }
+    
     private void saveVault() {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(vaultPath))) {
             oos.writeObject(vault);

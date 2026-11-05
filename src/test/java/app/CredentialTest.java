@@ -1,16 +1,19 @@
+package app;
 import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.*;
 
-public class CredentialTest {
+@SuppressWarnings("java:S106")
+class CredentialTest {
 
     @Test
-    public void testCredential() {
+    void testCredential() {
         Credential cred = new Credential("aimar", "1234");
         assertEquals("aimar", cred.getUsername());
         assertEquals("1234", cred.getPassword());
     }
     @Test
-    public void testCategorias() {
+    void testCategorias() {
         Credential cred = new Credential("aimar", "1234");
         assertTrue(cred.getCategories().isEmpty());
 
@@ -19,5 +22,17 @@ public class CredentialTest {
 
         cred.removeCategory("Universidad");
         assertFalse(cred.getCategories().contains("Universidad"));
+    }
+
+    @Test
+    void testCategoriesNullRecuperacion() throws Exception {
+        Credential cred = new Credential("aimar", "1234");
+        
+        java.lang.reflect.Field field = Credential.class.getDeclaredField("categories");
+        field.setAccessible(true);
+        field.set(cred, null);
+        
+        assertNotNull(cred.getCategories());
+        assertTrue(cred.getCategories().isEmpty());
     }
 }

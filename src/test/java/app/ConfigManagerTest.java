@@ -1,0 +1,44 @@
+package app;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+@SuppressWarnings("java:S106")
+class ConfigManagerTest {
+
+    @Test
+    void testSinArgumentos() {
+        String[] args = {};
+        ConfigManager config = new ConfigManager(args);
+
+        assertEquals("vault.dat", config.getVaultPath()); 
+    }
+
+    @Test
+    void testConArgumento() {
+        String[] args = {"-c", "archivo_falso.properties"};
+        ConfigManager config = new ConfigManager(args);
+
+        assertEquals("vault.dat", config.getVaultPath()); 
+    }
+    
+    @Test
+    void testConArgumentoSinNombre() {
+        String[] args = {"-c"};
+        ConfigManager config = new ConfigManager(args);
+
+        assertEquals("vault.dat", config.getVaultPath()); 
+    }
+
+    @Test
+    void testArchivoValido() throws Exception {
+        java.io.File temp = java.io.File.createTempFile("config", ".properties");
+        java.nio.file.Files.writeString(temp.toPath(), "vault.path=mi_vault_custom.dat");
+        
+        String[] args = {"-c", temp.getAbsolutePath()};
+        ConfigManager config = new ConfigManager(args);
+        
+        assertEquals("mi_vault_custom.dat", config.getVaultPath());
+        temp.delete();
+    }
+}
