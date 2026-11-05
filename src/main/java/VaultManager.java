@@ -26,10 +26,8 @@ public class VaultManager {
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
             vault = (Map<String, Credential>) ois.readObject();
             try {
-                // Intenta cargar las categorías si el archivo ya tiene el nuevo formato
                 categories = (Map<String, Set<String>>) ois.readObject();
             } catch (EOFException e) {
-                // Si es un archivo del Día 1, no tendrá categorías guardadas aún
                 categories = new HashMap<>();
             }
         } catch (IOException | ClassNotFoundException e) {
@@ -54,7 +52,6 @@ public class VaultManager {
 
     public void deleteLogin(String id) {
         vault.remove(id);
-        // Al borrar el login, lo quitamos también de cualquier categoría
         for (Set<String> ids : categories.values()) {
             ids.remove(id);
         }
@@ -69,11 +66,10 @@ public class VaultManager {
         return vault.keySet();
     }
 
-    // --- MÉTODOS DE CATEGORÍAS PEDIDOS POR AIMAR ---
 
     public boolean addCategory(String name) {
         if (categories.containsKey(name)) {
-            return false; // La categoría ya existe
+            return false;
         }
         categories.put(name, new HashSet<>());
         saveVault();
@@ -82,14 +78,13 @@ public class VaultManager {
 
     public boolean deleteCategory(String name) {
         if (categories.remove(name) != null) {
-            // Quitar esta categoría de todas las credenciales que la tuvieran
             for (Credential cred : vault.values()) {
                 cred.removeCategory(name);
             }
             saveVault();
             return true;
         }
-        return false; // La categoría no existía
+        return false;
     }
 
     public Set<String> getCategories() {
@@ -98,11 +93,11 @@ public class VaultManager {
 
     public boolean addLoginToCategory(String id, String category) {
         if (!vault.containsKey(id) || !categories.containsKey(category)) {
-            return false; // No existe el ID o la categoría
+            return false;
         }
         boolean added = categories.get(category).add(id);
         if (added) {
-            vault.get(id).addCategory(category); // Actualiza el objeto Credential
+            vault.get(id).addCategory(category);
             saveVault();
         }
         return added;
@@ -115,7 +110,7 @@ public class VaultManager {
         boolean removed = categories.get(category).remove(id);
         if (removed) {
             if (vault.containsKey(id)) {
-                vault.get(id).removeCategory(category); // Actualiza el objeto Credential
+                vault.get(id).removeCategory(category);
             }
             saveVault();
         }

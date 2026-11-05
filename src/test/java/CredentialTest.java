@@ -9,4 +9,15 @@ public class CredentialTest {
         assertEquals("aimar", cred.getUsername());
         assertEquals("1234", cred.getPassword());
     }
+    @Test
+    public void testCategorias() {
+        Credential cred = new Credential("aimar", "1234");
+        assertTrue(cred.getCategories().isEmpty());
+
+        cred.addCategory("Universidad");
+        assertTrue(cred.getCategories().contains("Universidad"));
+
+        cred.removeCategory("Universidad");
+        assertFalse(cred.getCategories().contains("Universidad"));
+    }
 }

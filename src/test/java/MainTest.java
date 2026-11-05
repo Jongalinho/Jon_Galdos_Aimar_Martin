@@ -40,4 +40,29 @@ public class MainTest {
         assertTrue(output.contains("Invalid option."));
         assertTrue(output.contains("Login deleted."));
     }
+    
+    @Test
+    public void testMenuNuevasOpcionesCategorias() {
+        String input = "3\ncred1\nuser\npass\n8\nOcio\n6\ncred1\nOcio\n5\ne\n";
+        System.setIn(new ByteArrayInputStream(input.getBytes()));
+        
+        Main.main(new String[]{});
+        
+        String output = os.toString();
+        assertTrue(output.contains("Exiting..."));
+    }
+
+    @Test
+    public void testMenuCategoriasErrores() {
+        String input = "8\nCat1\n8\nCat1\n9\nFalsa\n6\nFalso\nCat1\n7\nFalso\nCat1\ne\n";
+        System.setIn(new ByteArrayInputStream(input.getBytes()));
+        
+        Main.main(new String[]{});
+        
+        String output = os.toString();
+        assertTrue(output.contains("Category already exists."));
+        assertTrue(output.contains("Category not found."));
+        assertTrue(output.contains("Error: Login ID or Category not found."));
+        assertTrue(output.contains("Error: Category not found or ID not in category."));
+    }
 }

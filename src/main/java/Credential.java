@@ -6,7 +6,7 @@ public class Credential implements Serializable {
     private static final long serialVersionUID = 1L;
     private final String username;
     private final String password;
-    private Set<String> categories; // Nueva estructura
+    private Set<String> categories;
 
     public Credential(String username, String password) {
         this.username = username;
@@ -17,9 +17,7 @@ public class Credential implements Serializable {
     public String getUsername() { return username; }
     public String getPassword() { return password; }
 
-    // --- MÉTODOS PEDIDOS POR AIMAR ---
     public Set<String> getCategories() { 
-        // Por si se lee de un archivo antiguo que no tenía esta variable inicializada
         if (categories == null) categories = new HashSet<>();
         return categories; 
     }
