@@ -1,4 +1,5 @@
 package app;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -17,6 +18,19 @@ class MainTest {
         os = new ByteArrayOutputStream();
         ps = new PrintStream(os);
         System.setOut(ps);
+        
+        java.io.File file = new java.io.File("vault.dat");
+        if (file.exists()) {
+            file.delete();
+        }
+    }
+
+    @AfterEach
+    void tearDown() {
+        java.io.File file = new java.io.File("vault.dat");
+        if (file.exists()) {
+            file.delete();
+        }
     }
 
     @Test
