@@ -1,4 +1,5 @@
 package app;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
@@ -6,11 +7,13 @@ import java.util.Properties;
 public class ConfigManager {
     private static final String DEFAULT_CONFIG = "config.properties";
     private String vaultPath = "vault.dat";
-    private String syncFilePath = null; 
+    private String syncFilePath = null;
+    private String serverAddress = null;
+    private int serverPort = -1;
 
     public ConfigManager(String[] args) {
         String configPath = DEFAULT_CONFIG;
-        
+
         for (int i = 0; i < args.length; i++) {
             if ("-c".equals(args[i]) && i + 1 < args.length) {
                 configPath = args[i + 1];
@@ -26,6 +29,10 @@ public class ConfigManager {
             props.load(in);
             this.vaultPath = props.getProperty("vault.path", "vault.dat");
             this.syncFilePath = props.getProperty("sync.file", null);
+            this.serverAddress = props.getProperty("server.address", null);
+            this.serverPort = props.getProperty("server.port") != null
+                    ? Integer.parseInt(props.getProperty("server.port"))
+                    : -1;
         } catch (IOException e) {
             System.out.println("Config file not found, using default vault path.");
         }
@@ -37,5 +44,13 @@ public class ConfigManager {
 
     public String getSyncFilePath() {
         return syncFilePath;
+    }
+
+    public String getServerAddress() {
+        return serverAddress;
+    }
+
+    public int getServerPort() {
+        return serverPort;
     }
 }

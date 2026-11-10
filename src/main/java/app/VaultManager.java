@@ -199,4 +199,30 @@ public class VaultManager {
             System.out.println("Error during synchronization: " + e.getMessage());
         }
     }
+
+    @SuppressWarnings("unchecked")
+    public void syncWithServer(String address, int port) {
+        try (java.net.Socket socket = new java.net.Socket(address, port);
+             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+             ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
+            
+            out.writeObject(vault);
+            out.writeObject(categories);
+            out.writeObject(deletedLogins);
+            out.flush();
+            
+            Map<String, Credential> remoteVault = (Map<String, Credential>) in.readObject();
+            Map<String, Set<String>> remoteCategories = (Map<String, Set<String>>) in.readObject();
+            Map<String, Long> remoteDeleted = (Map<String, Long>) in.readObject();
+            
+            this.vault = remoteVault;
+            this.categories = remoteCategories;
+            this.deletedLogins = remoteDeleted;
+            saveVault();
+            
+            System.out.println("Synced successfully with server.");
+        } catch (Exception e) {
+            System.out.println("Error syncing with server: " + e.getMessage());
+        }
+    }
 }
