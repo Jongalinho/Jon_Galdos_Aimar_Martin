@@ -41,4 +41,16 @@ class ConfigManagerTest {
         assertEquals("mi_vault_custom.dat", config.getVaultPath());
         temp.delete();
     }
+
+    @Test
+    void testSyncFilePath() throws Exception {
+        java.io.File temp = java.io.File.createTempFile("config_sync", ".properties");
+        java.nio.file.Files.writeString(temp.toPath(), "vault.path=vault.dat\nsync.file=sync_data.dat");
+        
+        String[] args = {"-c", temp.getAbsolutePath()};
+        ConfigManager config = new ConfigManager(args);
+        
+        assertEquals("sync_data.dat", config.getSyncFilePath());
+        temp.delete();
+    }
 }

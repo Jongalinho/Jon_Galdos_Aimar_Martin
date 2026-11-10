@@ -9,6 +9,7 @@ public class VaultManager {
     private final String vaultPath;
     private Map<String, Credential> vault;
     private Map<String, Set<String>> categories;
+    private Map<String, Long> deletedLogins;
 
     public VaultManager(String vaultPath) {
         this.vaultPath = vaultPath;
@@ -21,15 +22,22 @@ public class VaultManager {
         if (!file.exists()) {
             vault = new HashMap<>();
             categories = new HashMap<>();
+            deletedLogins = new HashMap<>();
             return;
         }
         
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
             vault = (Map<String, Credential>) ois.readObject();
             loadCategories(ois);
+            try {
+                deletedLogins = (Map<String, Long>) ois.readObject();
+            } catch (Exception e) {
+                deletedLogins = new HashMap<>();
+            }
         } catch (IOException | ClassNotFoundException e) {
             vault = new HashMap<>();
             categories = new HashMap<>();
+            deletedLogins = new HashMap<>();
         }
     }
 
@@ -46,6 +54,7 @@ public class VaultManager {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(vaultPath))) {
             oos.writeObject(vault);
             oos.writeObject(categories);
+            oos.writeObject(deletedLogins);
         } catch (IOException e) {
             System.out.println("Error saving vault: " + e.getMessage());
         }
@@ -57,11 +66,13 @@ public class VaultManager {
     }
 
     public void deleteLogin(String id) {
-        vault.remove(id);
-        for (Set<String> ids : categories.values()) {
-            ids.remove(id);
+        if (vault.remove(id) != null) {
+            for (Set<String> ids : categories.values()) {
+                ids.remove(id);
+            }
+            deletedLogins.put(id, System.currentTimeMillis());
+            saveVault();
         }
-        saveVault();
     }
 
     public Credential getCredential(String id) {
@@ -71,7 +82,6 @@ public class VaultManager {
     public Iterable<String> getLoginIds() {
         return vault.keySet();
     }
-
 
     public boolean addCategory(String name) {
         if (categories.containsKey(name)) {
@@ -121,5 +131,72 @@ public class VaultManager {
             saveVault();
         }
         return removed;
+    }
+
+    public void syncWithLocalFile(String syncPath) {
+        if (syncPath == null || syncPath.isEmpty()) {
+            System.out.println("No sync file configured.");
+            return;
+        }
+        
+        File syncFile = new File(syncPath);
+        if (!syncFile.exists()) {
+            System.out.println("Sync file does not exist yet. Saving current vault as sync file...");
+            try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(syncPath))) {
+                oos.writeObject(vault);
+                oos.writeObject(categories);
+                oos.writeObject(deletedLogins);
+            } catch (IOException e) {
+                System.out.println("Error creating sync file: " + e.getMessage());
+            }
+            return;
+        }
+
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(syncFile))) {
+            @SuppressWarnings("unchecked") Map<String, Credential> remoteVault = (Map<String, Credential>) ois.readObject();
+            @SuppressWarnings("unchecked") Map<String, Set<String>> remoteCategories = (Map<String, Set<String>>) ois.readObject();
+            @SuppressWarnings("unchecked") Map<String, Long> remoteDeleted = null;
+            try { remoteDeleted = (Map<String, Long>) ois.readObject(); } catch (Exception e) { remoteDeleted = new HashMap<>(); }
+
+            boolean changed = false;
+
+            for (Map.Entry<String, Credential> entry : remoteVault.entrySet()) {
+                String id = entry.getKey();
+                Credential remoteCred = entry.getValue();
+                
+                if (deletedLogins.containsKey(id) && deletedLogins.get(id) >= remoteCred.getLastEditDate()) continue;
+
+                if (!vault.containsKey(id) || vault.get(id).getLastEditDate() < remoteCred.getLastEditDate()) {
+                    vault.put(id, remoteCred);
+                    changed = true;
+                }
+            }
+
+            for (Map.Entry<String, Long> entry : remoteDeleted.entrySet()) {
+                String id = entry.getKey();
+                long remoteDeleteTime = entry.getValue();
+                
+                if (vault.containsKey(id) && vault.get(id).getLastEditDate() < remoteDeleteTime) {
+                    vault.remove(id);
+                    deletedLogins.put(id, remoteDeleteTime);
+                    changed = true;
+                }
+            }
+
+            if (changed) {
+                saveVault();
+                try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(syncPath))) {
+                    oos.writeObject(vault);
+                    oos.writeObject(categories);
+                    oos.writeObject(deletedLogins);
+                }
+                System.out.println("Sync completed successfully.");
+            } else {
+                System.out.println("Vaults are already in sync.");
+            }
+
+        } catch (Exception e) {
+            System.out.println("Error during synchronization: " + e.getMessage());
+        }
     }
 }

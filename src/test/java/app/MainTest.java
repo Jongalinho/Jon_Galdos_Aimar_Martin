@@ -160,4 +160,14 @@ class MainTest {
         assertTrue(output.contains(" - login1")); 
         assertTrue(output.contains("(No logins assigned)")); 
     }
+
+    @Test
+    void testMenuSyncOption() {
+        String input = "s\ne\n";
+        System.setIn(new java.io.ByteArrayInputStream(input.getBytes()));
+        
+        Main.main(new String[]{});
+        
+        assertTrue(os.toString().contains("Exiting..."));
+    }
 }

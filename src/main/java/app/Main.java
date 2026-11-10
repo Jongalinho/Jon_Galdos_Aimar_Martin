@@ -41,6 +41,9 @@ public class Main {
                 case "9":
                     deleteCategory(scanner, vault);
                     break;
+                case "s":
+                    vault.syncWithLocalFile(config.getSyncFilePath());
+                    break;
                 case "e":
                     System.out.println("Exiting...");
                     scanner.close();
@@ -61,6 +64,7 @@ public class Main {
         System.out.println("(7) Remove ID from Category");
         System.out.println("(8) Add Category");
         System.out.println("(9) Delete Category");
+        System.out.println("(s) Sync with Server");  
         System.out.println("(e) Exit");
         System.out.print("Select an option: ");
     }

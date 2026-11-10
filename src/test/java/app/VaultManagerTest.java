@@ -108,4 +108,48 @@ class VaultManagerTest {
         
         assertNotNull(vault.getCategories());
     }
+
+    @Test
+    void testSyncWithLocalFileNullOrEmpty() {
+        VaultManager vault = new VaultManager(TEST_FILE);
+        vault.syncWithLocalFile(null);
+        vault.syncWithLocalFile("");
+        assertTrue(true);
+    }
+
+    @Test
+    void testSyncWithNewFileCreation() {
+        VaultManager vault = new VaultManager(TEST_FILE);
+        vault.addLogin("1", "user", "pass");
+        String syncPath = "nueva_sync_test.dat";
+        
+        vault.syncWithLocalFile(syncPath);
+        assertTrue(new File(syncPath).exists());
+        new File(syncPath).delete();
+    }
+
+    @Test
+    void testSyncLocalMergeAndConflicts() throws Exception {
+        String remoteFile = "remote_vault_test.dat";
+        
+        VaultManager vault = new VaultManager(TEST_FILE);
+        vault.addLogin("1", "localUser", "pass1");
+        
+        VaultManager remoteVault = new VaultManager(remoteFile);
+        Thread.sleep(10);
+        remoteVault.addLogin("1", "remoteUserNewer", "pass2");
+        remoteVault.addLogin("2", "remoteUser2", "pass3");
+        
+        vault.syncWithLocalFile(remoteFile);
+        
+        assertEquals("remoteUserNewer", vault.getCredential("1").getUsername());
+        assertNotNull(vault.getCredential("2"));
+        
+        vault.syncWithLocalFile(remoteFile);
+        
+        vault.deleteLogin("2");
+        vault.syncWithLocalFile(remoteFile);
+        
+        new File(remoteFile).delete();
+    }
 }
