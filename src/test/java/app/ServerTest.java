@@ -51,6 +51,7 @@ class ServerTest {
     }
 
     @Test
+    @SuppressWarnings("java:S2925")
     void testServerElseBranchAndExceptions() throws Exception {
         int testPort = 5080;
 
@@ -85,6 +86,7 @@ class ServerTest {
     }
 
     @Test
+    @SuppressWarnings("java:S2925")
     void testServerMultipleInteractionsAndSyncBranch() throws Exception {
         int testPort = 5090;
 

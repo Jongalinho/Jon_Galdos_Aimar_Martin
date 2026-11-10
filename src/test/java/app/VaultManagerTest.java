@@ -129,6 +129,7 @@ class VaultManagerTest {
     }
 
     @Test
+    @SuppressWarnings("java:S2925")
     void testSyncLocalMergeAndConflicts() throws Exception {
         String remoteFile = "remote_vault_test.dat";
         

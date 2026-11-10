@@ -37,6 +37,7 @@ class CredentialTest {
     }
 
     @Test
+    @SuppressWarnings("java:S2925")
     void testLastEditDate() throws InterruptedException {
         Credential cred = new Credential("syncUser", "pass123");
         long initialDate = cred.getLastEditDate();

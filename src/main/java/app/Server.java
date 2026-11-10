@@ -39,11 +39,7 @@ public class Server {
 
             serverVault.syncWithLocalFile(tempClientFile.getAbsolutePath());
             
-            try {
-                java.nio.file.Files.delete(tempClientFile.toPath());
-            } catch (IOException e) {
-                tempClientFile.deleteOnExit();
-            }
+            deleteTempFileSafely(tempClientFile);
 
             File serverFile = new File(serverVaultPath);
             if (serverFile.exists()) {
@@ -61,6 +57,14 @@ public class Server {
             return false;
         }
         return true;
+    }
+
+    private static void deleteTempFileSafely(File file) {
+        try {
+            java.nio.file.Files.delete(file.toPath());
+        } catch (IOException e) {
+            file.deleteOnExit();
+        }
     }
 
     private static void writeTempFile(File file, Map<String, Credential> vault, Map<String, Set<String>> categories, Map<String, Long> deleted) throws IOException {

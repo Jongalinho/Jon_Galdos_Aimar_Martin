@@ -207,31 +207,31 @@ public class VaultManager {
 
     private boolean mergeRemoteDeletions(Map&lt;String, Long&gt; remoteDeleted) {
 <span class="fc" id="L209">        boolean changed = false;</span>
-<span class="pc bpc" id="L210" title="1 of 2 branches missed.">        for (Map.Entry&lt;String, Long&gt; entry : remoteDeleted.entrySet()) {</span>
-<span class="nc" id="L211">            String id = entry.getKey();</span>
-<span class="nc" id="L212">            long remoteDeleteTime = entry.getValue();</span>
+<span class="fc bfc" id="L210" title="All 2 branches covered.">        for (Map.Entry&lt;String, Long&gt; entry : remoteDeleted.entrySet()) {</span>
+<span class="fc" id="L211">            String id = entry.getKey();</span>
+<span class="fc" id="L212">            long remoteDeleteTime = entry.getValue();</span>
             
-<span class="nc bnc" id="L214" title="All 4 branches missed.">            if (vault.containsKey(id) &amp;&amp; vault.get(id).getLastEditDate() &lt; remoteDeleteTime) {</span>
-<span class="nc" id="L215">                vault.remove(id);</span>
-<span class="nc" id="L216">                deletedLogins.put(id, remoteDeleteTime);</span>
-<span class="nc" id="L217">                changed = true;</span>
+<span class="pc bpc" id="L214" title="2 of 4 branches missed.">            if (vault.containsKey(id) &amp;&amp; vault.get(id).getLastEditDate() &lt; remoteDeleteTime) {</span>
+<span class="fc" id="L215">                vault.remove(id);</span>
+<span class="fc" id="L216">                deletedLogins.put(id, remoteDeleteTime);</span>
+<span class="fc" id="L217">                changed = true;</span>
             }
-<span class="nc" id="L219">        }</span>
+<span class="fc" id="L219">        }</span>
 <span class="fc" id="L220">        return changed;</span>
     }
 
     private boolean mergeRemoteCategories(Map&lt;String, Set&lt;String&gt;&gt; remoteCategories) {
 <span class="fc" id="L224">        boolean changed = false;</span>
-<span class="pc bpc" id="L225" title="1 of 2 branches missed.">        for (Map.Entry&lt;String, Set&lt;String&gt;&gt; catEntry : remoteCategories.entrySet()) {</span>
-<span class="nc" id="L226">            String catName = catEntry.getKey();</span>
-<span class="nc" id="L227">            Set&lt;String&gt; remoteIds = catEntry.getValue();</span>
-<span class="nc bnc" id="L228" title="All 2 branches missed.">            if (!categories.containsKey(catName)) {</span>
-<span class="nc" id="L229">                categories.put(catName, new HashSet&lt;&gt;(remoteIds));</span>
-<span class="nc" id="L230">                changed = true;</span>
+<span class="fc bfc" id="L225" title="All 2 branches covered.">        for (Map.Entry&lt;String, Set&lt;String&gt;&gt; catEntry : remoteCategories.entrySet()) {</span>
+<span class="fc" id="L226">            String catName = catEntry.getKey();</span>
+<span class="fc" id="L227">            Set&lt;String&gt; remoteIds = catEntry.getValue();</span>
+<span class="pc bpc" id="L228" title="1 of 2 branches missed.">            if (!categories.containsKey(catName)) {</span>
+<span class="fc" id="L229">                categories.put(catName, new HashSet&lt;&gt;(remoteIds));</span>
+<span class="fc" id="L230">                changed = true;</span>
 <span class="nc bnc" id="L231" title="All 2 branches missed.">            } else if (categories.get(catName).addAll(remoteIds)) {</span>
 <span class="nc" id="L232">                changed = true;</span>
             }
-<span class="nc" id="L234">        }</span>
+<span class="fc" id="L234">        }</span>
 <span class="fc" id="L235">        return changed;</span>
     }
 
