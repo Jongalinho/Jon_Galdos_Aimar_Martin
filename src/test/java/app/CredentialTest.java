@@ -35,4 +35,23 @@ class CredentialTest {
         assertNotNull(cred.getCategories());
         assertTrue(cred.getCategories().isEmpty());
     }
+
+    @Test
+    void testLastEditDate() throws InterruptedException {
+        Credential cred = new Credential("syncUser", "pass123");
+        long initialDate = cred.getLastEditDate();
+        assertTrue(initialDate > 0);
+
+        Thread.sleep(10); 
+
+        cred.addCategory("SyncCat");
+        long afterAddDate = cred.getLastEditDate();
+        assertTrue(afterAddDate > initialDate);
+
+        Thread.sleep(10);
+
+        cred.removeCategory("SyncCat");
+        long afterRemoveDate = cred.getLastEditDate();
+        assertTrue(afterRemoveDate > afterAddDate);
+    }
 }
