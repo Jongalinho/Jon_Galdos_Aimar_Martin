@@ -57,8 +57,9 @@ class MainTest {
     }
 
     @Test
+    @SuppressWarnings("java:S5738")
     void testMenuOpcionInvalidaYBorrar() {
-        String input = "9\n3\ncred2\n\n\n4\ncred2\ne\n";
+        String input = "9\nn3\ncred2\n\n\n4\nncred2\ne\n";
         System.setIn(new ByteArrayInputStream(input.getBytes()));
         
         Main.main(new String[]{});

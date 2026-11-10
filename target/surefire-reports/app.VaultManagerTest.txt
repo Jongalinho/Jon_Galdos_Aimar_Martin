@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: app.VaultManagerTest
 -------------------------------------------------------------------------------
-Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.086 s -- in app.VaultManagerTest
+Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.092 s -- in app.VaultManagerTest

@@ -1,6 +1,7 @@
 package app;
 
 import org.junit.jupiter.api.Test;
+import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
@@ -14,6 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class ServerTest {
 
     @Test
+    @SuppressWarnings("java:S2925")
     void testServerConnectionAndSync() throws Exception {
         int testPort = 5070;
         CountDownLatch latch = new CountDownLatch(1);
@@ -127,5 +129,43 @@ class ServerTest {
 
         if (serverVaultFile.exists()) serverVaultFile.delete();
         assertTrue(true);
+    }
+
+    @Test
+    @SuppressWarnings("java:S2925")
+    void testServerWithExistingVaultBranch() throws Exception {
+        int testPort = 5095;
+        File serverVaultFile = new File("server_vault.dat");
+        
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(serverVaultFile))) {
+            oos.writeObject(new java.util.HashMap<String, Credential>());
+            oos.writeObject(new java.util.HashMap<String, java.util.Set<String>>());
+            oos.writeObject(new java.util.HashMap<String, Long>());
+        }
+
+        Thread serverThread = new Thread(() -> {
+            try {
+                Server.main(new String[]{String.valueOf(testPort)});
+            } catch (Exception e) {}
+        });
+        serverThread.setDaemon(true);
+        serverThread.start();
+
+        Thread.sleep(300);
+
+        try (Socket socket = new Socket("localhost", testPort);
+             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+             ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
+            
+            out.writeObject(new java.util.HashMap<String, Credential>());
+            out.writeObject(new java.util.HashMap<String, java.util.Set<String>>());
+            out.writeObject(new java.util.HashMap<String, Long>());
+            out.flush();
+            assertNotNull(in.readObject());
+        }
+
+        if (serverVaultFile.exists()) {
+            serverVaultFile.delete();
+        }
     }
 }

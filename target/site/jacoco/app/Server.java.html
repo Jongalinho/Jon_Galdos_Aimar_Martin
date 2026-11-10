@@ -39,49 +39,53 @@ import java.util.Set;
 
 <span class="fc" id="L40">            serverVault.syncWithLocalFile(tempClientFile.getAbsolutePath());</span>
             
-            try {
-<span class="fc" id="L43">                java.nio.file.Files.delete(tempClientFile.toPath());</span>
-<span class="nc" id="L44">            } catch (IOException e) {</span>
-<span class="nc" id="L45">                tempClientFile.deleteOnExit();</span>
-<span class="fc" id="L46">            }</span>
+<span class="fc" id="L42">            deleteTempFileSafely(tempClientFile);</span>
 
-<span class="fc" id="L48">            File serverFile = new File(serverVaultPath);</span>
-<span class="pc bpc" id="L49" title="1 of 2 branches missed.">            if (serverFile.exists()) {</span>
-<span class="nc" id="L50">                sendServerVault(serverFile, out);</span>
+<span class="fc" id="L44">            File serverFile = new File(serverVaultPath);</span>
+<span class="pc bpc" id="L45" title="1 of 2 branches missed.">            if (serverFile.exists()) {</span>
+<span class="nc" id="L46">                sendServerVault(serverFile, out);</span>
             } else {
-<span class="fc" id="L52">                out.writeObject(clientVault);</span>
-<span class="fc" id="L53">                out.writeObject(clientCategories);</span>
-<span class="fc" id="L54">                out.writeObject(clientDeleted);</span>
+<span class="fc" id="L48">                out.writeObject(clientVault);</span>
+<span class="fc" id="L49">                out.writeObject(clientCategories);</span>
+<span class="fc" id="L50">                out.writeObject(clientDeleted);</span>
             }
-<span class="fc" id="L56">            out.flush();</span>
+<span class="fc" id="L52">            out.flush();</span>
               
-<span class="fc" id="L58">            System.out.println(&quot;Sync processed for client.&quot;);</span>
-<span class="fc" id="L59">        } catch (Exception e) {</span>
-<span class="fc" id="L60">            System.out.println(&quot;Error handling client: &quot; + e.getMessage());</span>
-<span class="fc" id="L61">            return false;</span>
-<span class="fc" id="L62">        }</span>
-<span class="fc" id="L63">        return true;</span>
+<span class="fc" id="L54">            System.out.println(&quot;Sync processed for client.&quot;);</span>
+<span class="fc" id="L55">        } catch (Exception e) {</span>
+<span class="fc" id="L56">            System.out.println(&quot;Error handling client: &quot; + e.getMessage());</span>
+<span class="fc" id="L57">            return false;</span>
+<span class="fc" id="L58">        }</span>
+<span class="fc" id="L59">        return true;</span>
     }
 
+    private static void deleteTempFileSafely(File file) {
+        try {
+<span class="fc" id="L64">            java.nio.file.Files.delete(file.toPath());</span>
+<span class="nc" id="L65">        } catch (IOException e) {</span>
+<span class="nc" id="L66">            file.deleteOnExit();</span>
+<span class="fc" id="L67">        }</span>
+<span class="fc" id="L68">    }</span>
+
     private static void writeTempFile(File file, Map&lt;String, Credential&gt; vault, Map&lt;String, Set&lt;String&gt;&gt; categories, Map&lt;String, Long&gt; deleted) throws IOException {
-<span class="fc" id="L67">        try (ObjectOutputStream tempOos = new ObjectOutputStream(new FileOutputStream(file))) {</span>
-<span class="fc" id="L68">            tempOos.writeObject(vault);</span>
-<span class="fc" id="L69">            tempOos.writeObject(categories);</span>
-<span class="fc" id="L70">            tempOos.writeObject(deleted);</span>
+<span class="fc" id="L71">        try (ObjectOutputStream tempOos = new ObjectOutputStream(new FileOutputStream(file))) {</span>
+<span class="fc" id="L72">            tempOos.writeObject(vault);</span>
+<span class="fc" id="L73">            tempOos.writeObject(categories);</span>
+<span class="fc" id="L74">            tempOos.writeObject(deleted);</span>
         }
-<span class="fc" id="L72">    }</span>
+<span class="fc" id="L76">    }</span>
 
     @SuppressWarnings(&quot;unchecked&quot;)
     private static void sendServerVault(File serverFile, ObjectOutputStream out) throws IOException, ClassNotFoundException {
-<span class="nc" id="L76">        try (ObjectInputStream serverOis = new ObjectInputStream(new FileInputStream(serverFile))) {</span>
-<span class="nc" id="L77">            Map&lt;String, Credential&gt; resVault = (Map&lt;String, Credential&gt;) serverOis.readObject();</span>
-<span class="nc" id="L78">            Map&lt;String, Set&lt;String&gt;&gt; resCat = (Map&lt;String, Set&lt;String&gt;&gt;) serverOis.readObject();</span>
-<span class="nc" id="L79">            Map&lt;String, Long&gt; resDel = (Map&lt;String, Long&gt;) serverOis.readObject();</span>
+<span class="nc" id="L80">        try (ObjectInputStream serverOis = new ObjectInputStream(new FileInputStream(serverFile))) {</span>
+<span class="nc" id="L81">            Map&lt;String, Credential&gt; resVault = (Map&lt;String, Credential&gt;) serverOis.readObject();</span>
+<span class="nc" id="L82">            Map&lt;String, Set&lt;String&gt;&gt; resCat = (Map&lt;String, Set&lt;String&gt;&gt;) serverOis.readObject();</span>
+<span class="nc" id="L83">            Map&lt;String, Long&gt; resDel = (Map&lt;String, Long&gt;) serverOis.readObject();</span>
             
-<span class="nc" id="L81">            out.writeObject(resVault);</span>
-<span class="nc" id="L82">            out.writeObject(resCat);</span>
-<span class="nc" id="L83">            out.writeObject(resDel);</span>
+<span class="nc" id="L85">            out.writeObject(resVault);</span>
+<span class="nc" id="L86">            out.writeObject(resCat);</span>
+<span class="nc" id="L87">            out.writeObject(resDel);</span>
         }
-<span class="nc" id="L85">    }</span>
+<span class="nc" id="L89">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

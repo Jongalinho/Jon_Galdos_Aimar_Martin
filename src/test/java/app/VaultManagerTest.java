@@ -177,4 +177,18 @@ class VaultManagerTest {
         new File(remoteFile).delete();
         assertTrue(true);
     }
+
+    @Test
+    void testVaultsAlreadyInSyncBranch() {
+        VaultManager vault1 = new VaultManager(TEST_FILE);
+        vault1.addLogin("sync_id", "user", "pass");
+        
+        String syncFile = "sync_identical.dat";
+        vault1.syncWithLocalFile(syncFile);
+        
+        vault1.syncWithLocalFile(syncFile);
+        
+        assertTrue(new File(syncFile).exists());
+        new File(syncFile).delete();
+    }
 }
