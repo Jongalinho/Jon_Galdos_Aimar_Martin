@@ -53,4 +53,17 @@ class ConfigManagerTest {
         assertEquals("sync_data.dat", config.getSyncFilePath());
         temp.delete();
     }
+
+    @Test
+    void testServerPortConfig() throws Exception {
+        java.io.File temp = java.io.File.createTempFile("config_port", ".properties");
+        java.nio.file.Files.writeString(temp.toPath(), "server.address=localhost\nserver.port=8080");
+        
+        String[] args = {"-c", temp.getAbsolutePath()};
+        ConfigManager config = new ConfigManager(args);
+        
+        assertEquals(8080, config.getServerPort());
+        assertEquals("localhost", config.getServerAddress());
+        temp.delete();
+    }
 }

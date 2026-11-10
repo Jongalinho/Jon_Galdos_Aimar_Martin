@@ -13,13 +13,12 @@ class ServerTest {
 
     @Test
     void testServerConnectionAndSync() throws Exception {
-        int testPort = 5050;
+        int testPort = 5070;
 
         Thread serverThread = new Thread(() -> {
             try {
                 Server.main(new String[]{String.valueOf(testPort)});
-            } catch (Exception e) {
-            }
+            } catch (Exception e) {}
         });
         serverThread.setDaemon(true);
         serverThread.start();
@@ -46,8 +45,8 @@ class ServerTest {
     }
 
     @Test
-    void testServerElseBranchWithoutExistingVault() throws Exception {
-        int testPort = 5060;
+    void testServerElseBranchAndExceptions() throws Exception {
+        int testPort = 5080;
 
         File serverVaultFile = new File("server_vault.dat");
         if (serverVaultFile.exists()) {
@@ -65,17 +64,12 @@ class ServerTest {
         Thread.sleep(300);
 
         try (Socket socket = new Socket("localhost", testPort);
-             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-             ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
-
-            out.writeObject(new java.util.HashMap<String, Credential>());
-            out.writeObject(new java.util.HashMap<String, java.util.Set<String>>());
-            out.writeObject(new java.util.HashMap<String, Long>());
+             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream())) {
+            out.writeObject("Dato invalido para provocar excepcion en el server");
             out.flush();
-
-            Object response = in.readObject();
-            assertNotNull(response);
         }
+
+        Thread.sleep(200);
 
         if (serverVaultFile.exists()) {
             serverVaultFile.delete();

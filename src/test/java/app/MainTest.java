@@ -170,4 +170,17 @@ class MainTest {
         
         assertTrue(os.toString().contains("Exiting..."));
     }
+    @Test
+    void testMenuSyncServerOption() throws Exception {
+        java.io.File tempConfig = java.io.File.createTempFile("config_server", ".properties");
+        java.nio.file.Files.writeString(tempConfig.toPath(), "vault.path=vault.dat\nserver.address=127.0.0.1\nserver.port=5000");
+
+        String input = "s\ne\n";
+        System.setIn(new java.io.ByteArrayInputStream(input.getBytes()));
+        
+        Main.main(new String[]{"-c", tempConfig.getAbsolutePath()});
+        
+        tempConfig.delete();
+        assertTrue(os.toString().contains("Exiting..."));
+    }
 }
