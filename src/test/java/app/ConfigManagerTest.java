@@ -66,4 +66,14 @@ class ConfigManagerTest {
         assertEquals("localhost", config.getServerAddress());
         temp.delete();
     }
+
+    @Test
+    void testGetServerPortExplicitly() throws Exception {
+        java.io.File temp = java.io.File.createTempFile("config_port_exp", ".properties");
+        java.nio.file.Files.writeString(temp.toPath(), "server.port=9090");
+        
+        ConfigManager config = new ConfigManager(new String[]{"-c", temp.getAbsolutePath()});
+        assertEquals(9090, config.getServerPort());
+        temp.delete();
+    }
 }

@@ -183,4 +183,19 @@ class MainTest {
         tempConfig.delete();
         assertTrue(os.toString().contains("Exiting..."));
     }
+
+    @Test
+    void testMenuSyncLocalOption() throws Exception {
+        java.io.File tempConfig = java.io.File.createTempFile("config_local", ".properties");
+        java.nio.file.Files.writeString(tempConfig.toPath(), "vault.path=vault.dat\nsync.file=sync_local.dat");
+
+        String input = "s\ne\n";
+        System.setIn(new java.io.ByteArrayInputStream(input.getBytes()));
+        
+        Main.main(new String[]{"-c", tempConfig.getAbsolutePath()});
+        
+        tempConfig.delete();
+        new File("sync_local.dat").delete();
+        assertTrue(os.toString().contains("Exiting..."));
+    }
 }
