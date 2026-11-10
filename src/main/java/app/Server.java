@@ -17,8 +17,9 @@ public class Server {
         String serverVaultPath = "server_vault.dat";
         VaultManager serverVault = new VaultManager(serverVaultPath);
 
+        boolean running = true;
         try (ServerSocket serverSocket = new ServerSocket(port)) {
-            while (true) {
+            while (running) {
                 try (Socket clientSocket = serverSocket.accept();
                      ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream());
                      ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream())) {
@@ -37,7 +38,11 @@ public class Server {
                     }
 
                     serverVault.syncWithLocalFile(tempClientFile.getAbsolutePath());
-                    tempClientFile.delete();
+                    
+                    boolean deleted = tempClientFile.delete();
+                    if (!deleted && tempClientFile.exists()) {
+                        tempClientFile.deleteOnExit();
+                    }
 
                     File serverFile = new File(serverVaultPath);
                     if (serverFile.exists()) {
@@ -60,7 +65,7 @@ public class Server {
                     System.out.println("Sync processed for client.");
                 } catch (Exception e) {
                     System.out.println("Error handling client: " + e.getMessage());
-                    break;
+                    running = false; 
                 }
             }
         } catch (IOException e) {

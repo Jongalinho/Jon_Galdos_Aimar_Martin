@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="app.MainTest" time="0.09" tests="10" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="app.MainTest" time="0.128" tests="11" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="25"/>
     <property name="sun.cpu.isalist" value="amd64"/>
+    <property name="sonar.login" value="sqp_f8ee4e524c9093e8c4611a3abdadd0d21e7b44ee"/>
+    <property name="sonar.host.url" value="http://localhost:9000"/>
     <property name="sun.jnu.encoding" value="Cp1252"/>
     <property name="java.class.path" value="C:\Users\aimar\Desktop\SOFTWARE ENGINEERING\Practica\Jon_Galdos_Aimar_Martin\target\test-classes;C:\Users\aimar\Desktop\SOFTWARE ENGINEERING\Practica\Jon_Galdos_Aimar_Martin\target\classes;C:\Users\aimar\.m2\repository\org\junit\jupiter\junit-jupiter\5.13.3\junit-jupiter-5.13.3.jar;C:\Users\aimar\.m2\repository\org\junit\jupiter\junit-jupiter-api\5.13.3\junit-jupiter-api-5.13.3.jar;C:\Users\aimar\.m2\repository\org\opentest4j\opentest4j\1.3.0\opentest4j-1.3.0.jar;C:\Users\aimar\.m2\repository\org\junit\platform\junit-platform-commons\1.13.3\junit-platform-commons-1.13.3.jar;C:\Users\aimar\.m2\repository\org\apiguardian\apiguardian-api\1.1.2\apiguardian-api-1.1.2.jar;C:\Users\aimar\.m2\repository\org\junit\jupiter\junit-jupiter-params\5.13.3\junit-jupiter-params-5.13.3.jar;C:\Users\aimar\.m2\repository\org\junit\jupiter\junit-jupiter-engine\5.13.3\junit-jupiter-engine-5.13.3.jar;C:\Users\aimar\.m2\repository\org\junit\platform\junit-platform-engine\1.13.3\junit-platform-engine-1.13.3.jar;C:\Users\aimar\.m2\repository\org\hamcrest\hamcrest\3.0\hamcrest-3.0.jar;C:\Users\aimar\.m2\repository\org\easymock\easymock\5.6.0\easymock-5.6.0.jar;C:\Users\aimar\.m2\repository\net\bytebuddy\byte-buddy\1.17.5\byte-buddy-1.17.5.jar;C:\Users\aimar\.m2\repository\org\ow2\asm\asm\9.8\asm-9.8.jar;C:\Users\aimar\.m2\repository\org\objenesis\objenesis\3.4\objenesis-3.4.jar;"/>
     <property name="java.vm.vendor" value="Oracle Corporation"/>
@@ -15,7 +17,7 @@
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
     <property name="user.country" value="ES"/>
     <property name="sun.boot.library.path" value="C:\Program Files\Java\jdk-25.0.4\bin"/>
-    <property name="sun.java.command" value="C:\Users\aimar\AppData\Local\Temp\surefire17312153655337104364\surefirebooter-20261110122221958_5.jar C:\Users\aimar\AppData\Local\Temp\surefire17312153655337104364 2026-11-10T12-22-21_672-jvmRun1 surefire-20261110122221958_2tmp surefire_1-20261110122221958_4tmp"/>
+    <property name="sun.java.command" value="C:\Users\aimar\AppData\Local\Temp\surefire10445785653982370461\surefirebooter-20261110135836808_5.jar C:\Users\aimar\AppData\Local\Temp\surefire10445785653982370461 2026-11-10T13-58-36_398-jvmRun1 surefire-20261110135836808_1tmp surefire_0-20261110135836808_4tmp"/>
     <property name="jdk.debug" value="release"/>
     <property name="surefire.test.class.path" value="C:\Users\aimar\Desktop\SOFTWARE ENGINEERING\Practica\Jon_Galdos_Aimar_Martin\target\test-classes;C:\Users\aimar\Desktop\SOFTWARE ENGINEERING\Practica\Jon_Galdos_Aimar_Martin\target\classes;C:\Users\aimar\.m2\repository\org\junit\jupiter\junit-jupiter\5.13.3\junit-jupiter-5.13.3.jar;C:\Users\aimar\.m2\repository\org\junit\jupiter\junit-jupiter-api\5.13.3\junit-jupiter-api-5.13.3.jar;C:\Users\aimar\.m2\repository\org\opentest4j\opentest4j\1.3.0\opentest4j-1.3.0.jar;C:\Users\aimar\.m2\repository\org\junit\platform\junit-platform-commons\1.13.3\junit-platform-commons-1.13.3.jar;C:\Users\aimar\.m2\repository\org\apiguardian\apiguardian-api\1.1.2\apiguardian-api-1.1.2.jar;C:\Users\aimar\.m2\repository\org\junit\jupiter\junit-jupiter-params\5.13.3\junit-jupiter-params-5.13.3.jar;C:\Users\aimar\.m2\repository\org\junit\jupiter\junit-jupiter-engine\5.13.3\junit-jupiter-engine-5.13.3.jar;C:\Users\aimar\.m2\repository\org\junit\platform\junit-platform-engine\1.13.3\junit-platform-engine-1.13.3.jar;C:\Users\aimar\.m2\repository\org\hamcrest\hamcrest\3.0\hamcrest-3.0.jar;C:\Users\aimar\.m2\repository\org\easymock\easymock\5.6.0\easymock-5.6.0.jar;C:\Users\aimar\.m2\repository\net\bytebuddy\byte-buddy\1.17.5\byte-buddy-1.17.5.jar;C:\Users\aimar\.m2\repository\org\ow2\asm\asm\9.8\asm-9.8.jar;C:\Users\aimar\.m2\repository\org\objenesis\objenesis\3.4\objenesis-3.4.jar;"/>
     <property name="sun.cpu.endian" value="little"/>
@@ -30,7 +32,7 @@
     <property name="line.separator" value="&#10;"/>
     <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
     <property name="java.specification.name" value="Java Platform API Specification"/>
-    <property name="surefire.real.class.path" value="C:\Users\aimar\AppData\Local\Temp\surefire17312153655337104364\surefirebooter-20261110122221958_5.jar"/>
+    <property name="surefire.real.class.path" value="C:\Users\aimar\AppData\Local\Temp\surefire10445785653982370461\surefirebooter-20261110135836808_5.jar"/>
     <property name="user.script" value=""/>
     <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
     <property name="java.runtime.version" value="25.0.4+7-LTS-189"/>
@@ -50,6 +52,7 @@
     <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
     <property name="sun.os.patch.level" value=""/>
     <property name="native.encoding" value="Cp1252"/>
+    <property name="sonar.projectKey" value="gestor-credenciales"/>
     <property name="java.library.path" value="C:\Program Files\Java\jdk-25.0.4\bin;C:\WINDOWS\Sun\Java\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\Program Files\Common Files\Oracle\Java\javapath;C:\Program Files (x86)\Common Files\Oracle\Java\java8path;C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\MATLAB\R2025a\bin;C:\Program Files\Git\cmd;C:\Program Files\NVIDIA Corporation\NVIDIA App\NvDLISR;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\Docker\Docker\resources\bin;C:\Program Files\nodejs\;C:\Users\aimar\AppData\Local\Programs\Python\Python314\Scripts\;C:\Users\aimar\AppData\Local\Programs\Python\Python314\;C:\Users\aimar\AppData\Local\Programs\Python\Launcher\;C:\Users\aimar\AppData\Local\Microsoft\WindowsApps;C:\Users\aimar\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\aimar\AppData\Local\Programs\Ollama;C:\Users\aimar\.lmstudio\bin;C:\Program Files\apache-maven-3.9.16\bin;C:\Program Files\Oracle\VirtualBox;C:\Users\aimar\AppData\Local\Programs\Microsoft VS Code\bin\copilot-shim;C:\Users\aimar\AppData\Roaming\npm;c:\Users\aimar\.vscode\extensions\vscjava.vscode-java-debug-0.60.0\bundled\scripts\noConfigScripts;c:\Users\aimar\AppData\Roaming\Code\User\globalStorage\github.copilot-chat\debugCommand;C:\Users\aimar\AppData\Local\Programs\Microsoft VS Code\bin\copilot-shim;."/>
     <property name="java.vm.info" value="mixed mode, sharing"/>
     <property name="stderr.encoding" value="Cp1252"/>
@@ -59,14 +62,15 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="java.class.version" value="69.0"/>
   </properties>
-  <testcase name="testMenuQueryYEmptyCategory" classname="app.MainTest" time="0.021"/>
-  <testcase name="testViewCategoriesCombinacionPerfecta" classname="app.MainTest" time="0.011"/>
-  <testcase name="testMenuAñadirYSalir" classname="app.MainTest" time="0.004"/>
-  <testcase name="testMenuOpcionInvalidaYBorrar" classname="app.MainTest" time="0.003"/>
-  <testcase name="testMainCoberturaExtrema" classname="app.MainTest" time="0.01"/>
-  <testcase name="testMenuCategoriasErrores" classname="app.MainTest" time="0.004"/>
-  <testcase name="testMenuNuevasOpcionesCategorias" classname="app.MainTest" time="0.007"/>
-  <testcase name="testMainCaminosSecundarios" classname="app.MainTest" time="0.012"/>
-  <testcase name="testMainConstructorOculto" classname="app.MainTest" time="0.001"/>
-  <testcase name="testMenuBorrarLimpiamente" classname="app.MainTest" time="0.004"/>
+  <testcase name="testMenuQueryYEmptyCategory" classname="app.MainTest" time="0.033"/>
+  <testcase name="testViewCategoriesCombinacionPerfecta" classname="app.MainTest" time="0.019"/>
+  <testcase name="testMenuAñadirYSalir" classname="app.MainTest" time="0.005"/>
+  <testcase name="testMenuOpcionInvalidaYBorrar" classname="app.MainTest" time="0.004"/>
+  <testcase name="testMainCoberturaExtrema" classname="app.MainTest" time="0.014"/>
+  <testcase name="testMenuCategoriasErrores" classname="app.MainTest" time="0.007"/>
+  <testcase name="testMenuNuevasOpcionesCategorias" classname="app.MainTest" time="0.01"/>
+  <testcase name="testMainCaminosSecundarios" classname="app.MainTest" time="0.015"/>
+  <testcase name="testMenuSyncOption" classname="app.MainTest" time="0.003"/>
+  <testcase name="testMainConstructorOculto" classname="app.MainTest" time="0.002"/>
+  <testcase name="testMenuBorrarLimpiamente" classname="app.MainTest" time="0.002"/>
 </testsuite>
