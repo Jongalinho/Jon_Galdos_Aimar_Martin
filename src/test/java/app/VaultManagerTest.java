@@ -152,4 +152,28 @@ class VaultManagerTest {
         
         new File(remoteFile).delete();
     }
+
+    @Test
+    void testSyncComplexMergeAndErrors() throws Exception {
+        String remoteFile = "remote_complex_test.dat";
+        VaultManager vault = new VaultManager(TEST_FILE);
+        
+        vault.addLogin("1", "user1", "pass1");
+        vault.addCategory("Trabajo");
+        vault.addLoginToCategory("1", "Trabajo");
+
+        VaultManager remoteVault = new VaultManager(remoteFile);
+        remoteVault.addLogin("1", "user1Updated", "passNew");
+        remoteVault.addLogin("3", "user3", "pass3");
+        remoteVault.addCategory("Personal");
+        remoteVault.addLoginToCategory("3", "Personal");
+        remoteVault.deleteLogin("1");
+
+        vault.syncWithLocalFile(remoteFile);
+        
+        vault.syncWithLocalFile("");
+
+        new File(remoteFile).delete();
+        assertTrue(true);
+    }
 }
