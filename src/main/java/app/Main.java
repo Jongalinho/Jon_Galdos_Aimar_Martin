@@ -42,7 +42,11 @@ public class Main {
                     deleteCategory(scanner, vault);
                     break;
                 case "s":
-                    vault.syncWithLocalFile(config.getSyncFilePath());
+                    if (config.getServerAddress() != null && config.getServerPort() != -1) {
+                        vault.syncWithServer(config.getServerAddress(), config.getServerPort());
+                    } else {
+                        vault.syncWithLocalFile(config.getSyncFilePath());
+                    }
                     break;
                 case "e":
                     System.out.println("Exiting...");

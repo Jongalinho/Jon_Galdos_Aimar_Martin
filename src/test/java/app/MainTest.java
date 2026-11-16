@@ -5,21 +5,28 @@ import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.io.PrintStream;
+import java.io.File;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SuppressWarnings("java:S106")
 class MainTest {
     private ByteArrayOutputStream os;
     private PrintStream ps;
+    private InputStream originalIn;
+    private PrintStream originalOut;
 
     @BeforeEach
     void setup() {
+        originalIn = System.in;
+        originalOut = System.out;
+        
         os = new ByteArrayOutputStream();
         ps = new PrintStream(os);
         System.setOut(ps);
         
-        java.io.File file = new java.io.File("vault.dat");
+        File file = new File("vault.dat");
         if (file.exists()) {
             file.delete();
         }
@@ -27,7 +34,10 @@ class MainTest {
 
     @AfterEach
     void tearDown() {
-        java.io.File file = new java.io.File("vault.dat");
+        System.setOut(originalOut);
+        System.setIn(originalIn);
+        
+        File file = new File("vault.dat");
         if (file.exists()) {
             file.delete();
         }
@@ -47,8 +57,9 @@ class MainTest {
     }
 
     @Test
+    @SuppressWarnings("java:S5738")
     void testMenuOpcionInvalidaYBorrar() {
-        String input = "9\n3\ncred2\n\n\n4\ncred2\ne\n";
+        String input = "9\nn3\ncred2\n\n\n4\nncred2\ne\n";
         System.setIn(new ByteArrayInputStream(input.getBytes()));
         
         Main.main(new String[]{});
@@ -126,7 +137,7 @@ class MainTest {
     @Test
     void testMenuBorrarLimpiamente() {
         String input = "4\nID_FALSO\ne\n";
-        System.setIn(new java.io.ByteArrayInputStream(input.getBytes()));
+        System.setIn(new ByteArrayInputStream(input.getBytes()));
         
         Main.main(new String[]{});
         
@@ -142,12 +153,50 @@ class MainTest {
     @Test
     void testViewCategoriesCombinacionPerfecta() {
         String input = "3\nlogin1\n\n\n3\nlogin2\n\n\n8\nCat_Llena\n8\nCat_Vacia\n6\nlogin1\nCat_Llena\n5\ne\n";
-        System.setIn(new java.io.ByteArrayInputStream(input.getBytes()));
+        System.setIn(new ByteArrayInputStream(input.getBytes()));
 
         Main.main(new String[]{});
 
         String output = os.toString();
         assertTrue(output.contains(" - login1")); 
         assertTrue(output.contains("(No logins assigned)")); 
+    }
+
+    @Test
+    void testMenuSyncOption() {
+        String input = "s\ne\n";
+        System.setIn(new java.io.ByteArrayInputStream(input.getBytes()));
+        
+        Main.main(new String[]{});
+        
+        assertTrue(os.toString().contains("Exiting..."));
+    }
+    @Test
+    void testMenuSyncServerOption() throws Exception {
+        java.io.File tempConfig = java.io.File.createTempFile("config_server", ".properties");
+        java.nio.file.Files.writeString(tempConfig.toPath(), "vault.path=vault.dat\nserver.address=127.0.0.1\nserver.port=5000");
+
+        String input = "s\ne\n";
+        System.setIn(new java.io.ByteArrayInputStream(input.getBytes()));
+        
+        Main.main(new String[]{"-c", tempConfig.getAbsolutePath()});
+        
+        tempConfig.delete();
+        assertTrue(os.toString().contains("Exiting..."));
+    }
+
+    @Test
+    void testMenuSyncLocalOption() throws Exception {
+        java.io.File tempConfig = java.io.File.createTempFile("config_local", ".properties");
+        java.nio.file.Files.writeString(tempConfig.toPath(), "vault.path=vault.dat\nsync.file=sync_local.dat");
+
+        String input = "s\ne\n";
+        System.setIn(new java.io.ByteArrayInputStream(input.getBytes()));
+        
+        Main.main(new String[]{"-c", tempConfig.getAbsolutePath()});
+        
+        tempConfig.delete();
+        new File("sync_local.dat").delete();
+        assertTrue(os.toString().contains("Exiting..."));
     }
 }

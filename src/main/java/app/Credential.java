@@ -8,18 +8,19 @@ public class Credential implements Serializable {
     private final String username;
     private final String password;
     private Set<String> categories;
-    
-    // NUEVO: Variable añadida sin tocar el constructor
-    private long lastEditDate = System.currentTimeMillis(); 
+    private long lastEditDate; 
 
     public Credential(String username, String password) {
         this.username = username;
         this.password = password;
         this.categories = new HashSet<>();
+        this.lastEditDate = System.currentTimeMillis();
     }
 
     public String getUsername() { return username; }
     public String getPassword() { return password; }
+    
+    
 
     public Set<String> getCategories() { 
         if (categories == null) categories = new HashSet<>();
@@ -27,11 +28,13 @@ public class Credential implements Serializable {
     }
     
     public void addCategory(String name) { 
-        getCategories().add(name); 
+        getCategories().add(name);
+        this.lastEditDate = System.currentTimeMillis();
     }
     
     public void removeCategory(String name) { 
-        getCategories().remove(name); 
+        getCategories().remove(name);
+        this.lastEditDate = System.currentTimeMillis(); 
     }
 
     public long getLastEditDate() { 

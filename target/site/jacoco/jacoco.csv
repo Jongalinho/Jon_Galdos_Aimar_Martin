@@ -1,5 +1,6 @@
 GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
-DynamicTesting,app,VaultManager,8,251,4,18,3,65,4,20,0,13
-DynamicTesting,app,Credential,0,43,0,2,0,13,0,7,0,6
-DynamicTesting,app,Main,0,347,0,35,0,110,0,34,0,12
-DynamicTesting,app,ConfigManager,0,65,1,5,0,18,1,5,0,3
+DynamicTesting,app,VaultManager,89,577,10,44,25,141,9,41,0,23
+DynamicTesting,app,Credential,0,55,0,2,0,17,0,8,0,7
+DynamicTesting,app,Main,0,369,1,39,0,115,1,36,0,12
+DynamicTesting,app,Server,47,141,2,4,14,41,4,5,2,4
+DynamicTesting,app,ConfigManager,0,107,1,7,0,29,1,9,0,6
