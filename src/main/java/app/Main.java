@@ -5,14 +5,24 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) {
         ConfigManager config = new ConfigManager(args);
-        VaultManager vault = new VaultManager(config.getVaultPath());
         Scanner scanner = new Scanner(System.in);
-        
+
+        System.out.print("Enter master password: ");
+        String password = scanner.nextLine();
+
+        VaultManager vault;
+        try {
+            vault = new VaultManager(config.getVaultPath(), password);
+        } catch (IllegalStateException e) {
+            System.out.println(e.getMessage());
+            scanner.close();
+            return;
+        }
+
         while (true) {
             printMenu();
-            
             String choice = scanner.nextLine().trim();
-            
+
             switch (choice) {
                 case "1":
                     listLogins(vault);
@@ -68,7 +78,7 @@ public class Main {
         System.out.println("(7) Remove ID from Category");
         System.out.println("(8) Add Category");
         System.out.println("(9) Delete Category");
-        System.out.println("(s) Sync with Server");  
+        System.out.println("(s) Sync with Server");
         System.out.println("(e) Exit");
         System.out.print("Select an option: ");
     }
@@ -79,6 +89,7 @@ public class Main {
             System.out.println("- " + id);
         }
     }
+
     private static void queryLogin(Scanner scanner, VaultManager vault) {
         System.out.print("Enter ID: ");
         String qId = scanner.nextLine();

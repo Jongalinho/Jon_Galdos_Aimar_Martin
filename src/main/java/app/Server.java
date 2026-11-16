@@ -10,7 +10,7 @@ public class Server {
         int port = args.length > 0 ? Integer.parseInt(args[0]) : 5000;
         System.out.println("Vault Server started on port " + port + "...");
         String serverVaultPath = "server_vault.dat";
-        VaultManager serverVault = new VaultManager(serverVaultPath);
+        VaultManager serverVault = new VaultManager(serverVaultPath, "password_temporal_server");
 
         boolean running = true;
         try (ServerSocket serverSocket = new ServerSocket(port)) {

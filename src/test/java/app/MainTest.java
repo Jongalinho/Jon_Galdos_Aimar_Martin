@@ -1,16 +1,17 @@
 package app;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.InputStream;
 import java.io.PrintStream;
-import java.io.File;
 import static org.junit.jupiter.api.Assertions.*;
 
-@SuppressWarnings("java:S106")
+@SuppressWarnings({"java:S106", "java:S5738"})
 class MainTest {
     private ByteArrayOutputStream os;
     private PrintStream ps;
@@ -21,11 +22,11 @@ class MainTest {
     void setup() {
         originalIn = System.in;
         originalOut = System.out;
-        
+
         os = new ByteArrayOutputStream();
         ps = new PrintStream(os);
         System.setOut(ps);
-        
+
         File file = new File("vault.dat");
         if (file.exists()) {
             file.delete();
@@ -36,7 +37,7 @@ class MainTest {
     void tearDown() {
         System.setOut(originalOut);
         System.setIn(originalIn);
-        
+
         File file = new File("vault.dat");
         if (file.exists()) {
             file.delete();
@@ -45,11 +46,11 @@ class MainTest {
 
     @Test
     void testMenuAñadirYSalir() {
-        String input = "3\ncred1\nmi_usuario\nmi_pass\n1\ne\n";
+        String input = "masterpass\n3\ncred1\nmi_usuario\nmi_pass\n1\ne\n";
         System.setIn(new ByteArrayInputStream(input.getBytes()));
-        
+
         Main.main(new String[]{});
-        
+
         String output = os.toString();
         assertTrue(output.contains("Login added."));
         assertTrue(output.contains("- cred1"));
@@ -57,36 +58,35 @@ class MainTest {
     }
 
     @Test
-    @SuppressWarnings("java:S5738")
     void testMenuOpcionInvalidaYBorrar() {
-        String input = "9\nn3\ncred2\n\n\n4\nncred2\ne\n";
+        String input = "masterpass\n9\n3\ncred2\n\n\n4\ncred2\ne\n";
         System.setIn(new ByteArrayInputStream(input.getBytes()));
-        
+
         Main.main(new String[]{});
-        
+
         String output = os.toString();
         assertTrue(output.contains("Invalid option."));
         assertTrue(output.contains("Login deleted."));
     }
-    
+
     @Test
     void testMenuNuevasOpcionesCategorias() {
-        String input = "3\ncred1\nuser\npass\n8\nOcio\n6\ncred1\nOcio\n5\ne\n";
+        String input = "masterpass\n3\ncred1\nuser\npass\n8\nOcio\n6\ncred1\nOcio\n5\ne\n";
         System.setIn(new ByteArrayInputStream(input.getBytes()));
-        
+
         Main.main(new String[]{});
-        
+
         String output = os.toString();
         assertTrue(output.contains("Exiting..."));
     }
 
     @Test
     void testMenuCategoriasErrores() {
-        String input = "8\nCat1\n8\nCat1\n9\nFalsa\n6\nFalso\nCat1\n7\nFalso\nCat1\ne\n";
+        String input = "masterpass\n8\nCat1\n8\nCat1\n9\nFalsa\n6\nFalso\nCat1\n7\nFalso\nCat1\ne\n";
         System.setIn(new ByteArrayInputStream(input.getBytes()));
-        
+
         Main.main(new String[]{});
-        
+
         String output = os.toString();
         assertTrue(output.contains("Category already exists."));
         assertTrue(output.contains("Category not found."));
@@ -96,11 +96,11 @@ class MainTest {
 
     @Test
     void testMenuQueryYEmptyCategory() {
-        String input = "3\ncred1\nuser\npass\n8\nVacia\n2\ncred1\n2\nfalso\n5\ne\n";
+        String input = "masterpass\n3\ncred1\nuser\npass\n8\nVacia\n2\ncred1\n2\nfalso\n5\ne\n";
         System.setIn(new ByteArrayInputStream(input.getBytes()));
-        
+
         Main.main(new String[]{});
-        
+
         String output = os.toString();
         assertTrue(output.contains("Username: user"));
         assertTrue(output.contains("ID not found."));
@@ -109,11 +109,11 @@ class MainTest {
 
     @Test
     void testMainCaminosSecundarios() {
-        String input = "3\ncred2\n\n\n8\nTrabajo\n6\ncred2\nTrabajo\n7\ncred2\nTrabajo\n4\ncred2\n9\nTrabajo\ne\n";
+        String input = "masterpass\n3\ncred2\n\n\n8\nTrabajo\n6\ncred2\nTrabajo\n7\ncred2\nTrabajo\n4\ncred2\n9\nTrabajo\ne\n";
         System.setIn(new ByteArrayInputStream(input.getBytes()));
-        
+
         Main.main(new String[]{});
-        
+
         String output = os.toString();
         assertTrue(output.contains("Login added."));
         assertTrue(output.contains("Login ID added to category successfully."));
@@ -124,11 +124,11 @@ class MainTest {
 
     @Test
     void testMainCoberturaExtrema() {
-        String input = "3\ncred3\n\n1234\n3\ncred4\nadmin\n\n8\nTestCat\n6\ncred3\nTestCat\n5\n7\ncred4\nTestCat\ne\n";
+        String input = "masterpass\n3\ncred3\n\n1234\n3\ncred4\nadmin\n\n8\nTestCat\n6\ncred3\nTestCat\n5\n7\ncred4\nTestCat\ne\n";
         System.setIn(new ByteArrayInputStream(input.getBytes()));
-        
+
         Main.main(new String[]{});
-        
+
         String output = os.toString();
         assertTrue(output.contains("Error: Category not found or ID not in category."));
         assertTrue(output.contains("Exiting..."));
@@ -136,67 +136,80 @@ class MainTest {
 
     @Test
     void testMenuBorrarLimpiamente() {
-        String input = "4\nID_FALSO\ne\n";
+        String input = "masterpass\n4\nID_FALSO\ne\n";
         System.setIn(new ByteArrayInputStream(input.getBytes()));
-        
+
         Main.main(new String[]{});
-        
+
         assertTrue(os.toString().contains("Login deleted."));
     }
 
     @Test
     void testMainConstructorOculto() {
-        new Main(); 
+        new Main();
         assertTrue(true);
     }
 
     @Test
     void testViewCategoriesCombinacionPerfecta() {
-        String input = "3\nlogin1\n\n\n3\nlogin2\n\n\n8\nCat_Llena\n8\nCat_Vacia\n6\nlogin1\nCat_Llena\n5\ne\n";
+        String input = "masterpass\n3\nlogin1\n\n\n3\nlogin2\n\n\n8\nCat_Llena\n8\nCat_Vacia\n6\nlogin1\nCat_Llena\n5\ne\n";
         System.setIn(new ByteArrayInputStream(input.getBytes()));
 
         Main.main(new String[]{});
 
         String output = os.toString();
-        assertTrue(output.contains(" - login1")); 
-        assertTrue(output.contains("(No logins assigned)")); 
+        assertTrue(output.contains(" - login1"));
+        assertTrue(output.contains("(No logins assigned)"));
     }
 
     @Test
     void testMenuSyncOption() {
-        String input = "s\ne\n";
-        System.setIn(new java.io.ByteArrayInputStream(input.getBytes()));
-        
+        String input = "masterpass\ns\ne\n";
+        System.setIn(new ByteArrayInputStream(input.getBytes()));
+
         Main.main(new String[]{});
-        
+
         assertTrue(os.toString().contains("Exiting..."));
     }
+
     @Test
     void testMenuSyncServerOption() throws Exception {
-        java.io.File tempConfig = java.io.File.createTempFile("config_server", ".properties");
-        java.nio.file.Files.writeString(tempConfig.toPath(), "vault.path=vault.dat\nserver.address=127.0.0.1\nserver.port=5000");
+        File tempConfig = File.createTempFile("config_server", ".properties");
+        java.nio.file.Files.writeString(tempConfig.toPath(), "vault.path=vault.dat\nserver.address=127.0.0.1\nserver.port=59998");
 
-        String input = "s\ne\n";
-        System.setIn(new java.io.ByteArrayInputStream(input.getBytes()));
-        
+        String input = "masterpass\ns\ne\n";
+        System.setIn(new ByteArrayInputStream(input.getBytes()));
+
         Main.main(new String[]{"-c", tempConfig.getAbsolutePath()});
-        
+
         tempConfig.delete();
         assertTrue(os.toString().contains("Exiting..."));
     }
 
     @Test
     void testMenuSyncLocalOption() throws Exception {
-        java.io.File tempConfig = java.io.File.createTempFile("config_local", ".properties");
+        File tempConfig = File.createTempFile("config_local", ".properties");
         java.nio.file.Files.writeString(tempConfig.toPath(), "vault.path=vault.dat\nsync.file=sync_local.dat");
 
-        String input = "s\ne\n";
-        System.setIn(new java.io.ByteArrayInputStream(input.getBytes()));
-        
+        String input = "masterpass\ns\ne\n";
+        System.setIn(new ByteArrayInputStream(input.getBytes()));
+
         Main.main(new String[]{"-c", tempConfig.getAbsolutePath()});
-        
+
         tempConfig.delete();
         new File("sync_local.dat").delete();
         assertTrue(os.toString().contains("Exiting..."));
+    }
+
+    @Test
+    void testMainWrongPasswordExitsCleanly() {
+        VaultManager setup = new VaultManager("vault.dat", "correcta");
+        setup.addLogin("1", "u", "p");
+
+        String input = "incorrecta\n";
+        System.setIn(new ByteArrayInputStream(input.getBytes()));
+        Main.main(new String[]{});
+
+        assertTrue(os.toString().contains("Failed to decrypt vault"));
     }
 }

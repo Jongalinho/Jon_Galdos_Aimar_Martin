@@ -5,14 +5,18 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+@SuppressWarnings("java:S106")
 public class VaultManager {
     private final String vaultPath;
+    private final String password; // NUEVO: Atributo password para la Parte 1
     private Map<String, Credential> vault;
     private Map<String, Set<String>> categories;
     private Map<String, Long> deletedLogins;
 
-    public VaultManager(String vaultPath) {
+    // NUEVO CONSTRUCTOR
+    public VaultManager(String vaultPath, String password) {
         this.vaultPath = vaultPath;
+        this.password = password;
         loadVault();
     }
 
@@ -24,13 +28,20 @@ public class VaultManager {
             return;
         }
         
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
-            vault = (Map<String, Credential>) ois.readObject();
-            categories = readMapSafely(ois, new HashMap<>());
-            deletedLogins = readMapSafely(ois, new HashMap<>());
-        } catch (IOException | ClassNotFoundException e) {
-            initEmptyVault();
+        // MODIFICADO: Leer el Base64 y desencriptarlo
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String encryptedBase64 = reader.readLine();
+            if (encryptedBase64 != null && !encryptedBase64.isEmpty()) {
+                Object[] data = (Object[]) CryptoUtils.decryptObject(encryptedBase64, password);
+                vault = (Map<String, Credential>) data[0];
+                categories = (Map<String, Set<String>>) data[1];
+                deletedLogins = (Map<String, Long>) data[2];
+                return;
+            }
+        } catch (Exception e) {
+            System.out.println("Could not load or decrypt vault (wrong password?). Initializing empty.");
         }
+        initEmptyVault();
     }
 
     private void initEmptyVault() {
@@ -38,26 +49,19 @@ public class VaultManager {
         categories = new HashMap<>();
         deletedLogins = new HashMap<>();
     }
-
-    @SuppressWarnings("unchecked")
-    private <K, V> Map<K, V> readMapSafely(ObjectInputStream ois, Map<K, V> defaultValue) {
-        try {
-            return (Map<K, V>) ois.readObject();
-        } catch (Exception e) {
-            return defaultValue;
-        }
-    }
     
     private void saveVault() {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(vaultPath))) {
-            oos.writeObject(vault);
-            oos.writeObject(categories);
-            oos.writeObject(deletedLogins);
-        } catch (IOException e) {
+        // MODIFICADO: Encriptar a Base64 y guardar el String
+        try (PrintWriter writer = new PrintWriter(new FileWriter(vaultPath))) {
+            Object[] dataToEncrypt = {vault, categories, deletedLogins};
+            String encryptedBase64 = CryptoUtils.encryptObject(dataToEncrypt, password);
+            writer.println(encryptedBase64);
+        } catch (Exception e) {
             System.out.println("Error saving vault: " + e.getMessage());
         }
     }
 
+    // --- MÉTODOS CRUD INTACTOS ---
     public void addLogin(String id, String username, String password) {
         vault.put(id, new Credential(username, password));
         saveVault();
@@ -131,6 +135,7 @@ public class VaultManager {
         return removed;
     }
  
+    // --- PARTE 1: SYNC LOCAL CIFRADO ---
     public void syncWithLocalFile(String syncPath) {
         if (syncPath == null || syncPath.isEmpty()) {
             System.out.println("No sync file configured.");
@@ -139,39 +144,35 @@ public class VaultManager {
         
         File syncFile = new File(syncPath);
         if (!syncFile.exists()) {
-            createInitialSyncFile(syncFile);
+            System.out.println("Sync file does not exist yet. Saving current vault as sync file...");
+            writeSyncFile(syncFile);
             return;
         }
 
         processSyncFile(syncFile);
     }
 
-    private void createInitialSyncFile(File syncFile) {
-        System.out.println("Sync file does not exist yet. Saving current vault as sync file...");
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(syncFile))) {
-            oos.writeObject(vault);
-            oos.writeObject(categories);
-            oos.writeObject(deletedLogins);
-        } catch (IOException e) {
-            System.out.println("Error creating sync file: " + e.getMessage());
-        }
-    }
-
     @SuppressWarnings("unchecked")
     private void processSyncFile(File syncFile) {
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(syncFile))) {
-            Map<String, Credential> remoteVault = (Map<String, Credential>) ois.readObject();
-            Map<String, Set<String>> remoteCategories = readMapSafely(ois, new HashMap<>());
-            Map<String, Long> remoteDeleted = readMapSafely(ois, new HashMap<>());
+        // MODIFICADO: Leer el archivo local cifrado
+        try (BufferedReader reader = new BufferedReader(new FileReader(syncFile))) {
+            String encryptedBase64 = reader.readLine();
+            if (encryptedBase64 != null && !encryptedBase64.isEmpty()) {
+                Object[] remoteData = (Object[]) CryptoUtils.decryptObject(encryptedBase64, password);
+                
+                Map<String, Credential> remoteVault = (Map<String, Credential>) remoteData[0];
+                Map<String, Set<String>> remoteCategories = (Map<String, Set<String>>) remoteData[1];
+                Map<String, Long> remoteDeleted = (Map<String, Long>) remoteData[2];
 
-            boolean changed = mergeRemoteData(remoteVault, remoteCategories, remoteDeleted);
+                boolean changed = mergeRemoteData(remoteVault, remoteCategories, remoteDeleted);
 
-            if (changed) {
-                saveVault();
-                writeSyncFile(syncFile);
-                System.out.println("Sync completed successfully.");
-            } else {
-                System.out.println("Vaults are already in sync.");
+                if (changed) {
+                    saveVault();
+                    writeSyncFile(syncFile);
+                    System.out.println("Sync completed successfully.");
+                } else {
+                    System.out.println("Vaults are already in sync.");
+                }
             }
         } catch (Exception e) {
             System.out.println("Error during synchronization: " + e.getMessage());
@@ -236,15 +237,18 @@ public class VaultManager {
     }
 
     private void writeSyncFile(File syncFile) {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(syncFile))) {
-            oos.writeObject(vault);
-            oos.writeObject(categories);
-            oos.writeObject(deletedLogins);
-        } catch (IOException e) {
+        // MODIFICADO: Guardar cifrado
+        try (PrintWriter writer = new PrintWriter(new FileWriter(syncFile))) {
+            Object[] dataToEncrypt = {vault, categories, deletedLogins};
+            String encryptedBase64 = CryptoUtils.encryptObject(dataToEncrypt, password);
+            writer.println(encryptedBase64);
+        } catch (Exception e) {
             System.out.println("Error writing sync file: " + e.getMessage());
         }
     }
 
+    // --- PARTE 2: SYNC SERVER (INTACTO, PARA QUE AIMAR LO MODIFIQUE) ---
+    @SuppressWarnings("unchecked")
     public void syncWithServer(String address, int port) {
         try (java.net.Socket socket = new java.net.Socket(address, port);
              ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
@@ -255,11 +259,8 @@ public class VaultManager {
             out.writeObject(deletedLogins);
             out.flush();
             
-            @SuppressWarnings("unchecked")
             Map<String, Credential> remoteVault = (Map<String, Credential>) in.readObject();
-            @SuppressWarnings("unchecked")
             Map<String, Set<String>> remoteCategories = (Map<String, Set<String>>) in.readObject();
-            @SuppressWarnings("unchecked")
             Map<String, Long> remoteDeleted = (Map<String, Long>) in.readObject();
             
             this.vault = remoteVault;
