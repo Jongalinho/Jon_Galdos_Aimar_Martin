@@ -1,90 +1,54 @@
 package app;
-import java.io.*;
-import java.net.*;
-import java.util.Map;
-import java.util.Set;
 
-@SuppressWarnings({"java:S106", "java:S5443"})
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.Scanner;
+
+@SuppressWarnings("java:S106")
 public class Server {
     public static void main(String[] args) {
         int port = args.length > 0 ? Integer.parseInt(args[0]) : 5000;
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Enter server password: ");
+        String password = scanner.nextLine();
+        startServer(port, password);
+    }
+
+    public static void startServer(int port, String password) {
         System.out.println("Vault Server started on port " + port + "...");
         String serverVaultPath = "server_vault.dat";
-        VaultManager serverVault = new VaultManager(serverVaultPath, "password_temporal_server");
+        VaultManager serverVault = new VaultManager(serverVaultPath, password);
 
         boolean running = true;
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             while (running) {
-                running = handleClient(serverSocket, serverVault, serverVaultPath);
+                running = handleClient(serverSocket, serverVault);
             }
         } catch (IOException e) {
             System.out.println("Server exception: " + e.getMessage());
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private static boolean handleClient(ServerSocket serverSocket, VaultManager serverVault, String serverVaultPath) {
+    private static boolean handleClient(ServerSocket serverSocket, VaultManager serverVault) {
         try (Socket clientSocket = serverSocket.accept();
-             ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream());
-             ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream())) {
-              
+             BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+             PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true)) {
+
             System.out.println("Client connected from " + clientSocket.getInetAddress());
-              
-            Map<String, Credential> clientVault = (Map<String, Credential>) in.readObject();
-            Map<String, Set<String>> clientCategories = (Map<String, Set<String>>) in.readObject();
-            Map<String, Long> clientDeleted = (Map<String, Long>) in.readObject();
-              
-            File tempClientFile = File.createTempFile("client_sync_temp", ".dat");
-            writeTempFile(tempClientFile, clientVault, clientCategories, clientDeleted);
-
-            serverVault.syncWithLocalFile(tempClientFile.getAbsolutePath());
-            
-            deleteTempFileSafely(tempClientFile);
-
-            File serverFile = new File(serverVaultPath);
-            if (serverFile.exists()) {
-                sendServerVault(serverFile, out);
-            } else {
-                out.writeObject(clientVault);
-                out.writeObject(clientCategories);
-                out.writeObject(clientDeleted);
+            String encryptedClientData = in.readLine();
+            if (encryptedClientData != null && !encryptedClientData.isEmpty()) {
+                String encryptedResponse = serverVault.processEncryptedSyncPayload(encryptedClientData);
+                out.println(encryptedResponse);
+                System.out.println("Encrypted sync processed for client.");
             }
-            out.flush();
-              
-            System.out.println("Sync processed for client.");
         } catch (Exception e) {
             System.out.println("Error handling client: " + e.getMessage());
             return false;
         }
         return true;
-    }
-
-    private static void deleteTempFileSafely(File file) {
-        try {
-            java.nio.file.Files.delete(file.toPath());
-        } catch (IOException e) {
-            file.deleteOnExit();
-        }
-    }
-
-    private static void writeTempFile(File file, Map<String, Credential> vault, Map<String, Set<String>> categories, Map<String, Long> deleted) throws IOException {
-        try (ObjectOutputStream tempOos = new ObjectOutputStream(new FileOutputStream(file))) {
-            tempOos.writeObject(vault);
-            tempOos.writeObject(categories);
-            tempOos.writeObject(deleted);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private static void sendServerVault(File serverFile, ObjectOutputStream out) throws IOException, ClassNotFoundException {
-        try (ObjectInputStream serverOis = new ObjectInputStream(new FileInputStream(serverFile))) {
-            Map<String, Credential> resVault = (Map<String, Credential>) serverOis.readObject();
-            Map<String, Set<String>> resCat = (Map<String, Set<String>>) serverOis.readObject();
-            Map<String, Long> resDel = (Map<String, Long>) serverOis.readObject();
-            
-            out.writeObject(resVault);
-            out.writeObject(resCat);
-            out.writeObject(resDel);
-        }
     }
 }

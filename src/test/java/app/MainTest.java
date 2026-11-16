@@ -11,7 +11,7 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import static org.junit.jupiter.api.Assertions.*;
 
-@SuppressWarnings({"java:S106", "java:S5738"})
+@SuppressWarnings({"java:S106", "java:S5976"})
 class MainTest {
     private ByteArrayOutputStream os;
     private PrintStream ps;

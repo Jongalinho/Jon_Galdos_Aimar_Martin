@@ -30,7 +30,6 @@ class VaultManagerTest {
         assertNotNull(vault.getCredential("1"));
         assertEquals("jon", vault.getCredential("1").getUsername());
 
-        // Verificar que se puede recargar desde disco cifrado
         VaultManager reloaded = new VaultManager(TEST_FILE, TEST_PASS);
         assertEquals("pass", reloaded.getCredential("1").getPassword());
 
@@ -81,10 +80,11 @@ class VaultManagerTest {
 
     @Test
     void testErrorAlGuardar() {
+        VaultManager vault = new VaultManager(TEST_FILE, TEST_PASS);
+
         File dir = new File(TEST_FILE);
         dir.mkdir();
 
-        VaultManager vault = new VaultManager(TEST_FILE, TEST_PASS);
         vault.addCategory("Imposible");
 
         dir.delete();
@@ -120,7 +120,6 @@ class VaultManagerTest {
         File syncFile = new File(syncPath);
         assertTrue(syncFile.exists());
 
-        // Comprobar que en disco NO hay texto plano
         String diskContent = Files.readString(syncFile.toPath());
         assertFalse(diskContent.contains("secretoEnDisco"));
 
@@ -174,5 +173,37 @@ class VaultManagerTest {
 
         new File(remoteFile).delete();
         assertNotNull(vault.getCredential("3"));
+    }
+
+    @Test
+    void testExtraBranchesAndEdgeCases() throws Exception {
+        Files.writeString(new File(TEST_FILE).toPath(), "");
+        assertThrows(IllegalStateException.class, () -> new VaultManager(TEST_FILE, TEST_PASS));
+        new File(TEST_FILE).delete();
+
+        VaultManager vault1 = new VaultManager(TEST_FILE, TEST_PASS);
+        vault1.addLogin("1", "user", "pass");
+        String syncPath = "sync_branches_test.dat";
+        vault1.syncWithLocalFile(syncPath);
+        vault1.syncWithLocalFile(syncPath);
+
+        Files.writeString(new File(syncPath).toPath(), "contenido_corrupto");
+        vault1.syncWithLocalFile(syncPath);
+        new File(syncPath).delete();
+
+        String remotePath = "remote_del_test.dat";
+        VaultManager remote = new VaultManager(remotePath, TEST_PASS);
+        remote.addLogin("borrada", "u", "p");
+        Thread.sleep(15);
+
+        vault1.addLogin("borrada", "u", "p");
+        vault1.deleteLogin("borrada");
+        vault1.syncWithLocalFile(remotePath);
+        assertNull(vault1.getCredential("borrada"));
+        new File(remotePath).delete();
+
+        String badPayload = CryptoUtils.encryptObject("no_es_un_array", TEST_PASS);
+        assertThrows(java.security.GeneralSecurityException.class,
+                () -> vault1.processEncryptedSyncPayload(badPayload));
     }
 }

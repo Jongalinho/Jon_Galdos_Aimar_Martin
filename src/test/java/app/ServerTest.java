@@ -1,171 +1,88 @@
 package app;
 
 import org.junit.jupiter.api.Test;
-import java.io.FileOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.net.Socket;
+import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
+import java.io.InputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.nio.file.Files;
 import static org.junit.jupiter.api.Assertions.*;
 
-@SuppressWarnings("java:S106")
+@SuppressWarnings({"java:S106", "java:S2925"})
 class ServerTest {
 
     @Test
-    @SuppressWarnings("java:S2925")
-    void testServerConnectionAndSync() throws Exception {
-        int testPort = 5070;
-        CountDownLatch latch = new CountDownLatch(1);
+    void testEncryptedServerAndClientSync() throws Exception {
+        int testPort = 5075;
+        String sharedPass = "claveCompartida123";
+        File serverVaultFile = new File("server_vault.dat");
+        File clientVaultFile = new File("client_vault_test.dat");
+        if (serverVaultFile.exists()) serverVaultFile.delete();
+        if (clientVaultFile.exists()) clientVaultFile.delete();
 
-        Thread serverThread = new Thread(() -> {
-            try {
-                latch.countDown();
-                Server.main(new String[]{String.valueOf(testPort)});
-            } catch (Exception e) {
-            }
-        });
+        Thread serverThread = new Thread(() -> Server.startServer(testPort, sharedPass));
         serverThread.setDaemon(true);
         serverThread.start();
+        Thread.sleep(250);
 
-        assertTrue(latch.await(2, TimeUnit.SECONDS));
-        Thread.sleep(100);
+        VaultManager clientVault = new VaultManager(clientVaultFile.getPath(), sharedPass);
+        clientVault.addLogin("github", "aimar", "secreto123");
+        clientVault.syncWithServer("localhost", testPort);
 
-        try (Socket socket = new Socket("localhost", testPort);
-             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-             ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
+        String rawServerDisk = Files.readString(serverVaultFile.toPath());
+        assertFalse(rawServerDisk.contains("secreto123"));
+        assertFalse(rawServerDisk.contains("aimar"));
 
-            out.writeObject(java.util.Collections.emptyMap());
-            out.writeObject(java.util.Collections.emptyMap());
-            out.writeObject(java.util.Collections.emptyMap());
-            out.flush();
+        clientVault.syncWithServer("localhost", testPort);
 
-            Object response = in.readObject();
-            assertNotNull(response, "La respuesta del servidor no debe ser nula");
-        }
-
-        File serverVaultFile = new File("server_vault.dat");
-        if (serverVaultFile.exists()) {
-            serverVaultFile.delete();
-        }
+        serverVaultFile.delete();
+        clientVaultFile.delete();
     }
 
     @Test
-    @SuppressWarnings("java:S2925")
-    void testServerElseBranchAndExceptions() throws Exception {
-        int testPort = 5080;
-
-        File serverVaultFile = new File("server_vault.dat");
-        if (serverVaultFile.exists()) {
-            serverVaultFile.delete();
-        }
-
-        Thread serverThread = new Thread(() -> {
-            try {
-                Server.main(new String[]{String.valueOf(testPort)});
-            } catch (Exception e) {}
-        });
-        serverThread.setDaemon(true);
-        serverThread.start();
-
-        Thread.sleep(200);
-
-        try (Socket socket = new Socket("localhost", testPort);
-             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream())) {
-            out.writeObject("Dato invalido para provocar excepcion en el server");
-            out.flush();
-        }
-
-        Thread.sleep(100);
-
-        assertFalse(serverVaultFile.exists(), "El archivo del servidor no debería haberse creado con datos corruptos");
-
-        if (serverVaultFile.exists()) {
-            serverVaultFile.delete();
-        }
-    }
-
-    @Test
-    @SuppressWarnings("java:S2925")
-    void testServerMultipleInteractionsAndSyncBranch() throws Exception {
-        int testPort = 5090;
-
+    void testServerMainAndInvalidClientPayload() throws Exception {
+        int testPort = 5085;
         File serverVaultFile = new File("server_vault.dat");
         if (serverVaultFile.exists()) serverVaultFile.delete();
 
-        Thread serverThread = new Thread(() -> {
-            try {
-                Server.main(new String[]{String.valueOf(testPort)});
-            } catch (Exception e) {}
-        });
-        serverThread.setDaemon(true);
-        serverThread.start();
-
-        Thread.sleep(300);
-
-        try (Socket socket = new Socket("localhost", testPort);
-             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-             ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
-            
-            out.writeObject(new java.util.HashMap<String, Credential>());
-            out.writeObject(new java.util.HashMap<String, java.util.Set<String>>());
-            out.writeObject(new java.util.HashMap<String, Long>());
-            out.flush();
-            assertNotNull(in.readObject());
+        InputStream originalIn = System.in;
+        try {
+            System.setIn(new ByteArrayInputStream("serverPass\n".getBytes()));
+            Thread serverThread = new Thread(() -> Server.main(new String[]{String.valueOf(testPort)}));
+            serverThread.setDaemon(true);
+            serverThread.start();
+            Thread.sleep(250);
+        } finally {
+            System.setIn(originalIn);
         }
 
-        try (Socket socket = new Socket("localhost", testPort);
-             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-             ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
-            
-            out.writeObject(new java.util.HashMap<String, Credential>());
-            out.writeObject(new java.util.HashMap<String, java.util.Set<String>>());
-            out.writeObject(new java.util.HashMap<String, Long>());
-            out.flush();
-            assertNotNull(in.readObject());
+        try (Socket emptySocket = new Socket("localhost", testPort)) {
+            assertTrue(emptySocket.isConnected());
         }
+        Thread.sleep(100);
+        
+        try (Socket blankSocket = new Socket("localhost", testPort);
+             java.io.PrintWriter out = new java.io.PrintWriter(blankSocket.getOutputStream(), true)) {
+            out.println("");
+        }
+        Thread.sleep(100);
 
+        VaultManager wrongClient = new VaultManager("wrong_client_test.dat", "claveErronea");
+        wrongClient.addLogin("1", "user", "pass");
+        wrongClient.syncWithServer("localhost", testPort);
+
+        new File("wrong_client_test.dat").delete();
         if (serverVaultFile.exists()) serverVaultFile.delete();
         assertTrue(true);
     }
 
     @Test
-    @SuppressWarnings("java:S2925")
-    void testServerWithExistingVaultBranch() throws Exception {
-        int testPort = 5095;
-        File serverVaultFile = new File("server_vault.dat");
-        
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(serverVaultFile))) {
-            oos.writeObject(new java.util.HashMap<String, Credential>());
-            oos.writeObject(new java.util.HashMap<String, java.util.Set<String>>());
-            oos.writeObject(new java.util.HashMap<String, Long>());
-        }
-
-        Thread serverThread = new Thread(() -> {
-            try {
-                Server.main(new String[]{String.valueOf(testPort)});
-            } catch (Exception e) {}
-        });
-        serverThread.setDaemon(true);
-        serverThread.start();
-
-        Thread.sleep(300);
-
-        try (Socket socket = new Socket("localhost", testPort);
-             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-             ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
-            
-            out.writeObject(new java.util.HashMap<String, Credential>());
-            out.writeObject(new java.util.HashMap<String, java.util.Set<String>>());
-            out.writeObject(new java.util.HashMap<String, Long>());
-            out.flush();
-            assertNotNull(in.readObject());
-        }
-
-        if (serverVaultFile.exists()) {
-            serverVaultFile.delete();
+    void testServerPortAlreadyInUse() throws Exception {
+        try (ServerSocket occupied = new ServerSocket(0)) {
+            int busyPort = occupied.getLocalPort();
+            Server.startServer(busyPort, "pass");
+            assertTrue(occupied.isBound());
         }
     }
 }

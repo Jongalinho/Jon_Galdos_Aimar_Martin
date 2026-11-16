@@ -55,4 +55,14 @@ class CredentialTest {
         long afterRemoveDate = cred.getLastEditDate();
         assertTrue(afterRemoveDate > afterAddDate);
     }
+
+    @Test
+    @SuppressWarnings("java:S2925")
+    void testUpdateLastEditDate() throws InterruptedException {
+        Credential cred = new Credential("aimar", "1234");
+        long before = cred.getLastEditDate();
+        Thread.sleep(10);
+        cred.updateLastEditDate();
+        assertTrue(cred.getLastEditDate() > before);
+    }
 }
