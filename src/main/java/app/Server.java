@@ -3,19 +3,22 @@ package app;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
 @SuppressWarnings("java:S106")
 public class Server {
     public static void main(String[] args) {
         int port = args.length > 0 ? Integer.parseInt(args[0]) : 5000;
-        Scanner scanner = new Scanner(System.in);
-        System.out.print("Enter server password: ");
-        String password = scanner.nextLine();
-        startServer(port, password);
+        try (Scanner scanner = new Scanner(System.in, StandardCharsets.UTF_8)) {
+            System.out.print("Enter server password: ");
+            String password = scanner.nextLine();
+            startServer(port, password);
+        }
     }
 
     public static void startServer(int port, String password) {
@@ -35,8 +38,8 @@ public class Server {
 
     private static boolean handleClient(ServerSocket serverSocket, VaultManager serverVault) {
         try (Socket clientSocket = serverSocket.accept();
-             BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-             PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true)) {
+             BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), StandardCharsets.UTF_8));
+             PrintWriter out = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream(), StandardCharsets.UTF_8), true)) {
 
             System.out.println("Client connected from " + clientSocket.getInetAddress());
             String encryptedClientData = in.readLine();

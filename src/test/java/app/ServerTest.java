@@ -85,4 +85,35 @@ class ServerTest {
             assertTrue(occupied.isBound());
         }
     }
+
+    @Test
+    void testServerDefaultPortArg() throws Exception {
+        File serverVaultFile = new File("server_vault.dat");
+        if (serverVaultFile.exists()) serverVaultFile.delete();
+
+        InputStream originalIn = System.in;
+        try {
+            System.setIn(new ByteArrayInputStream("defaultPortPass\n".getBytes()));
+            Thread serverThread = new Thread(() -> Server.main(new String[]{}));
+            serverThread.setDaemon(true);
+            serverThread.start();
+            Thread.sleep(250);
+        } finally {
+            System.setIn(originalIn);
+        }
+
+        VaultManager client = new VaultManager("default_port_client.dat", "defaultPortPass");
+        client.addLogin("id1", "user", "pass");
+        client.syncWithServer("localhost", 5000);
+
+        assertNotNull(client.getCredential("id1"));
+        new File("default_port_client.dat").delete();
+        if (serverVaultFile.exists()) serverVaultFile.delete();
+    }
+
+    @Test
+    void testServerConstructor() {
+        Server server = new Server();
+        assertNotNull(server);
+    }
 }

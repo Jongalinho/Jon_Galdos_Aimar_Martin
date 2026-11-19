@@ -212,4 +212,18 @@ class MainTest {
 
         assertTrue(os.toString().contains("Failed to decrypt vault"));
     }
+
+    @Test
+    void testMenuSyncServerAddressSinPuerto() throws Exception {
+        File tempConfig = File.createTempFile("config_no_port", ".properties");
+        java.nio.file.Files.writeString(tempConfig.toPath(), "vault.path=vault.dat\nserver.address=127.0.0.1");
+
+        String input = "masterpass\ns\ne\n";
+        System.setIn(new ByteArrayInputStream(input.getBytes()));
+
+        Main.main(new String[]{"-c", tempConfig.getAbsolutePath()});
+
+        tempConfig.delete();
+        assertTrue(os.toString().contains("Exiting..."));
+    }
 }

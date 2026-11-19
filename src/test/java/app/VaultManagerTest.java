@@ -206,4 +206,95 @@ class VaultManagerTest {
         assertThrows(java.security.GeneralSecurityException.class,
                 () -> vault1.processEncryptedSyncPayload(badPayload));
     }
+
+    @Test
+    void testNonAsciiAndConflictResolutionBranches() throws Exception {
+        VaultManager vault = new VaultManager(TEST_FILE, TEST_PASS);
+        vault.addLogin("correo_ñ", "usuario_áéíóú_日本語", "contraseña_🔐_€");
+
+        VaultManager reloaded = new VaultManager(TEST_FILE, TEST_PASS);
+        assertEquals("usuario_áéíóú_日本語", reloaded.getCredential("correo_ñ").getUsername());
+        assertEquals("contraseña_🔐_€", reloaded.getCredential("correo_ñ").getPassword());
+
+        String remotePath = "remote_older_test.dat";
+        VaultManager remote = new VaultManager(remotePath, TEST_PASS);
+        remote.addLogin("keep_newer", "oldUser", "oldPass");
+        remote.addLogin("readded_remote", "u", "p");
+        remote.addLogin("edited_after_del", "u1", "p1");
+        remote.deleteLogin("edited_after_del"); // Borrado remoto antiguo
+
+        Thread.sleep(15);
+        vault.addLogin("keep_newer", "newerLocalUser", "newerLocalPass");
+        vault.addLogin("edited_after_del", "recreatedLocal", "p2"); // Edición local posterior al borrado remoto
+        vault.addLogin("readded_remote", "u", "p");
+        vault.deleteLogin("readded_remote"); // Borrado local más antiguo que remoto
+
+        String remoteNewerPath = "remote_newer_readd.dat";
+        VaultManager remoteNewer = new VaultManager(remoteNewerPath, TEST_PASS);
+        Thread.sleep(15);
+        remoteNewer.addLogin("readded_remote", "restoredUser", "restoredPass");
+
+        vault.syncWithLocalFile(remotePath);
+        assertEquals("newerLocalUser", vault.getCredential("keep_newer").getUsername());
+        assertEquals("recreatedLocal", vault.getCredential("edited_after_del").getUsername());
+
+        vault.syncWithLocalFile(remoteNewerPath);
+        assertEquals("restoredUser", vault.getCredential("readded_remote").getUsername());
+
+        Files.writeString(new File(remotePath).toPath(), "\n");
+        vault.syncWithLocalFile(remotePath);
+
+        new File(remotePath).delete();
+        new File(remoteNewerPath).delete();
+    }
+
+    @Test
+    void testRemainingBranchCoverage() throws Exception {
+        VaultManager vault = new VaultManager(TEST_FILE, TEST_PASS);
+        vault.addLogin("1", "user", "pass");
+        vault.addCategory("Cat1");
+
+        assertFalse(vault.addLoginToCategory("1", "CategoriaInexistente"));
+        assertTrue(vault.addLoginToCategory("1", "Cat1"));
+        assertFalse(vault.addLoginToCategory("1", "Cat1"));
+
+        assertFalse(vault.removeLoginFromCategory("1", "CategoriaInexistente"));
+
+        String emptyCatRemote = "remote_empty_cat.dat";
+        VaultManager remote = new VaultManager(emptyCatRemote, TEST_PASS);
+        remote.addCategory("CategoriaRemotaVacia");
+        remote.addLogin("2", "user2", "pass2");
+        remote.addCategory("Cat1");
+        remote.addLoginToCategory("2", "Cat1");
+        vault.syncWithLocalFile(emptyCatRemote);
+        vault.syncWithLocalFile(emptyCatRemote); // Cubre false en localIds.addAll(remoteIds)
+        assertTrue(vault.getCategories().contains("CategoriaRemotaVacia"));
+        assertTrue(vault.getCredential("2").getCategories().contains("Cat1"));
+        new File(emptyCatRemote).delete();
+
+        try (java.net.ServerSocket mockServer = new java.net.ServerSocket(0)) {
+            int port = mockServer.getLocalPort();
+            Thread responder = new Thread(() -> {
+                try (java.net.Socket s = mockServer.accept();
+                     java.io.BufferedReader in = new java.io.BufferedReader(new java.io.InputStreamReader(s.getInputStream()));
+                     java.io.PrintWriter out = new java.io.PrintWriter(s.getOutputStream(), true)) {
+                    in.readLine();
+                    out.println("");
+                } catch (Exception ignored) {
+                }
+            });
+            responder.setDaemon(true);
+            responder.start();
+
+            vault.syncWithServer("localhost", port);
+            assertNotNull(vault.getCredential("1"));
+        }
+
+        String remoteGhostDel = "remote_ghost_del.dat";
+        VaultManager remoteGhost = new VaultManager(remoteGhostDel, TEST_PASS);
+        remoteGhost.addLogin("solo_en_remoto", "u", "p");
+        remoteGhost.deleteLogin("solo_en_remoto");
+        vault.syncWithLocalFile(remoteGhostDel);
+        new File(remoteGhostDel).delete();
+    }
 }

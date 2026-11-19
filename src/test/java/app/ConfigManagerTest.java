@@ -76,4 +76,10 @@ class ConfigManagerTest {
         assertEquals(9090, config.getServerPort());
         temp.delete();
     }
+
+    @Test
+    void testConOtrosArgumentos() {
+        ConfigManager config = new ConfigManager(new String[]{"--otra-opcion", "valor"});
+        assertEquals("vault.dat", config.getVaultPath());
+    }
 }

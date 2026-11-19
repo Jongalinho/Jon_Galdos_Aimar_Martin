@@ -2,6 +2,9 @@ package app;
 
 import java.io.*;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.GeneralSecurityException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,9 +33,9 @@ public class VaultManager {
             return;
         }
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String encryptedBase64 = reader.readLine();
-            if (encryptedBase64 != null && !encryptedBase64.isEmpty()) {
+        try {
+            String encryptedBase64 = Files.readString(file.toPath(), StandardCharsets.UTF_8).trim();
+            if (!encryptedBase64.isEmpty()) {
                 Object[] data = (Object[]) CryptoUtils.decryptObject(encryptedBase64, password);
                 vault = (Map<String, Credential>) data[0];
                 categories = (Map<String, Set<String>>) data[1];
@@ -52,10 +55,10 @@ public class VaultManager {
     }
 
     private void saveVault() {
-        try (PrintWriter writer = new PrintWriter(new FileWriter(vaultPath))) {
+        try {
             Object[] dataToEncrypt = {vault, categories, deletedLogins};
             String encryptedBase64 = CryptoUtils.encryptObject(dataToEncrypt, password);
-            writer.println(encryptedBase64);
+            Files.writeString(Path.of(vaultPath), encryptedBase64, StandardCharsets.UTF_8);
         } catch (Exception e) {
             System.out.println("Error saving vault: " + e.getMessage());
         }
@@ -121,14 +124,13 @@ public class VaultManager {
     }
 
     public boolean removeLoginFromCategory(String id, String category) {
-        if (!categories.containsKey(category)) {
+        Set<String> ids = categories.get(category);
+        if (ids == null) {
             return false;
         }
-        boolean removed = categories.get(category).remove(id);
+        boolean removed = ids.remove(id);
         if (removed) {
-            if (vault.containsKey(id)) {
-                vault.get(id).removeCategory(category);
-            }
+            vault.get(id).removeCategory(category);
             saveVault();
         }
         return removed;
@@ -152,9 +154,9 @@ public class VaultManager {
 
     @SuppressWarnings("unchecked")
     private void processSyncFile(File syncFile) {
-        try (BufferedReader reader = new BufferedReader(new FileReader(syncFile))) {
-            String encryptedBase64 = reader.readLine();
-            if (encryptedBase64 != null && !encryptedBase64.isEmpty()) {
+        try {
+            String encryptedBase64 = Files.readString(syncFile.toPath(), StandardCharsets.UTF_8).trim();
+            if (!encryptedBase64.isEmpty()) {
                 Object[] remoteData = (Object[]) CryptoUtils.decryptObject(encryptedBase64, password);
 
                 Map<String, Credential> remoteVault = (Map<String, Credential>) remoteData[0];
@@ -211,8 +213,12 @@ public class VaultManager {
             String id = entry.getKey();
             long remoteDeleteTime = entry.getValue();
 
-            if (vault.containsKey(id) && vault.get(id).getLastEditDate() < remoteDeleteTime) {
+            Credential localCred = vault.get(id);
+            if (localCred != null && localCred.getLastEditDate() < remoteDeleteTime) {
                 vault.remove(id);
+                for (Set<String> ids : categories.values()) {
+                    ids.remove(id);
+                }
                 deletedLogins.put(id, remoteDeleteTime);
                 changed = true;
             }
@@ -225,8 +231,11 @@ public class VaultManager {
         for (Map.Entry<String, Set<String>> catEntry : remoteCategories.entrySet()) {
             String catName = catEntry.getKey();
             Set<String> remoteIds = catEntry.getValue();
-            boolean isNew = categories.get(catName) == null;
-            if (categories.computeIfAbsent(catName, k -> new HashSet<>()).addAll(remoteIds) || isNew) {
+            Set<String> localIds = categories.get(catName);
+            if (localIds == null) {
+                categories.put(catName, new HashSet<>(remoteIds));
+                changed = true;
+            } else if (localIds.addAll(remoteIds)) {
                 changed = true;
             }
         }
@@ -234,10 +243,10 @@ public class VaultManager {
     }
 
     private void writeSyncFile(File syncFile) {
-        try (PrintWriter writer = new PrintWriter(new FileWriter(syncFile))) {
+        try {
             Object[] dataToEncrypt = {vault, categories, deletedLogins};
             String encryptedBase64 = CryptoUtils.encryptObject(dataToEncrypt, password);
-            writer.println(encryptedBase64);
+            Files.writeString(syncFile.toPath(), encryptedBase64, StandardCharsets.UTF_8);
         } catch (Exception e) {
             System.out.println("Error writing sync file: " + e.getMessage());
         }
@@ -246,8 +255,8 @@ public class VaultManager {
     @SuppressWarnings("unchecked")
     public void syncWithServer(String address, int port) {
         try (Socket socket = new Socket(address, port);
-             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+             PrintWriter out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8), true);
+             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8))) {
 
             Object[] dataToSend = {vault, categories, deletedLogins};
             String encryptedPayload = CryptoUtils.encryptObject(dataToSend, password);
