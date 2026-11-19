@@ -221,13 +221,13 @@ class VaultManagerTest {
         remote.addLogin("keep_newer", "oldUser", "oldPass");
         remote.addLogin("readded_remote", "u", "p");
         remote.addLogin("edited_after_del", "u1", "p1");
-        remote.deleteLogin("edited_after_del"); // Borrado remoto antiguo
+        remote.deleteLogin("edited_after_del");
 
         Thread.sleep(15);
         vault.addLogin("keep_newer", "newerLocalUser", "newerLocalPass");
-        vault.addLogin("edited_after_del", "recreatedLocal", "p2"); // Edición local posterior al borrado remoto
+        vault.addLogin("edited_after_del", "recreatedLocal", "p2");
         vault.addLogin("readded_remote", "u", "p");
-        vault.deleteLogin("readded_remote"); // Borrado local más antiguo que remoto
+        vault.deleteLogin("readded_remote");
 
         String remoteNewerPath = "remote_newer_readd.dat";
         VaultManager remoteNewer = new VaultManager(remoteNewerPath, TEST_PASS);
@@ -267,7 +267,7 @@ class VaultManagerTest {
         remote.addCategory("Cat1");
         remote.addLoginToCategory("2", "Cat1");
         vault.syncWithLocalFile(emptyCatRemote);
-        vault.syncWithLocalFile(emptyCatRemote); // Cubre false en localIds.addAll(remoteIds)
+        vault.syncWithLocalFile(emptyCatRemote);
         assertTrue(vault.getCategories().contains("CategoriaRemotaVacia"));
         assertTrue(vault.getCredential("2").getCategories().contains("Cat1"));
         new File(emptyCatRemote).delete();
