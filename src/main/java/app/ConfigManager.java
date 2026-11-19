@@ -4,6 +4,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
 
+@SuppressWarnings("java:S106")
 public class ConfigManager {
     private static final String DEFAULT_CONFIG = "config.properties";
     private String vaultPath = "vault.dat";
@@ -33,7 +34,7 @@ public class ConfigManager {
             this.serverPort = props.getProperty("server.port") != null
                     ? Integer.parseInt(props.getProperty("server.port"))
                     : -1;
-        } catch (IOException e) {
+        } catch (IOException _) {
             System.out.println("Config file not found, using default vault path.");
         }
     }

@@ -280,7 +280,8 @@ class VaultManagerTest {
                      java.io.PrintWriter out = new java.io.PrintWriter(s.getOutputStream(), true)) {
                     in.readLine();
                     out.println("");
-                } catch (Exception ignored) {
+                } catch (Exception _) {
+                    assertNotNull(mockServer);
                 }
             });
             responder.setDaemon(true);

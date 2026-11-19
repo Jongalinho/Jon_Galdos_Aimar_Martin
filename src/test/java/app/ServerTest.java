@@ -47,8 +47,8 @@ class ServerTest {
         if (serverVaultFile.exists()) serverVaultFile.delete();
 
         InputStream originalIn = System.in;
-        try {
-            System.setIn(new ByteArrayInputStream("serverPass\n".getBytes()));
+        try (ByteArrayInputStream testIn = new ByteArrayInputStream("serverPass\n".getBytes(java.nio.charset.StandardCharsets.UTF_8))) {
+            System.setIn(testIn);
             Thread serverThread = new Thread(() -> Server.main(new String[]{String.valueOf(testPort)}));
             serverThread.setDaemon(true);
             serverThread.start();
@@ -92,8 +92,8 @@ class ServerTest {
         if (serverVaultFile.exists()) serverVaultFile.delete();
 
         InputStream originalIn = System.in;
-        try {
-            System.setIn(new ByteArrayInputStream("defaultPortPass\n".getBytes()));
+        try (ByteArrayInputStream testIn = new ByteArrayInputStream("defaultPortPass\n".getBytes(java.nio.charset.StandardCharsets.UTF_8))) {
+            System.setIn(testIn);
             Thread serverThread = new Thread(() -> Server.main(new String[]{}));
             serverThread.setDaemon(true);
             serverThread.start();
